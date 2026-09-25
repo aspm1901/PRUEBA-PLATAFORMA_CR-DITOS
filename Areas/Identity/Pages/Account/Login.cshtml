@@ -1,0 +1,92 @@
+@page
+@model PlataformaCreditos.Areas.Identity.Pages.Account.LoginModel
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+}
+
+<div class="row justify-content-center mt-3 mb-5">
+    <div class="col-md-7 col-lg-5">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <!-- Header con Degradado Institucional -->
+            <div class="p-4 text-center text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #084298 100%);">
+                <div class="bg-white text-primary rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-2 shadow-sm" style="width: 64px; height: 64px;">
+                    <i class="bi bi-bank2 fs-2"></i>
+                </div>
+                <h4 class="fw-bold mb-1">Plataforma de Créditos</h4>
+                <p class="small text-white-50 mb-0">Sistema de Originación y Evaluación Financiera</p>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+                <h5 class="fw-bold text-secondary mb-3 text-center">Acceso al Sistema</h5>
+
+                <!-- Botones de Autocompletado Rápido para Pruebas / Calificación -->
+                <div class="p-3 bg-light rounded-3 border mb-4">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i>
+                        <small class="fw-bold text-dark">Autocompletar Cuentas de Evaluación:</small>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-warning text-dark flex-fill" onclick="llenarCuenta('analista@creditos.com', 'Password123!')">
+                            <i class="bi bi-shield-check"></i> Analista
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary flex-fill" onclick="llenarCuenta('cliente1@creditos.com', 'Password123!')">
+                            <i class="bi bi-person"></i> Cliente 1
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary flex-fill" onclick="llenarCuenta('cliente2@creditos.com', 'Password123!')">
+                            <i class="bi bi-person"></i> Cliente 2
+                        </button>
+                    </div>
+                </div>
+
+                <form id="account" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Email" class="form-label fw-semibold text-secondary">
+                            <i class="bi bi-envelope me-1"></i> Correo Electrónico
+                        </label>
+                        <input asp-for="Input.Email" class="form-control form-control-lg fs-6" id="inputEmail" placeholder="ejemplo@creditos.com" autocomplete="username" />
+                        <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Password" class="form-label fw-semibold text-secondary">
+                            <i class="bi bi-lock me-1"></i> Contraseña
+                        </label>
+                        <input asp-for="Input.Password" class="form-control form-control-lg fs-6" id="inputPassword" placeholder="••••••••" autocomplete="current-password" />
+                        <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" asp-for="Input.RememberMe" />
+                        <label class="form-check-label text-muted small" asp-for="Input.RememberMe">
+                            Recordar mi sesión en este dispositivo
+                        </label>
+                    </div>
+
+                    <button id="login-submit" type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
+                    </button>
+                </form>
+            </div>
+
+            <!-- Footer Informativo -->
+            <div class="card-footer bg-light border-0 py-3 text-center">
+                <small class="text-muted d-block">
+                    Contraseña genérica para todas las cuentas: <code>Password123!</code>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function llenarCuenta(email, pass) {
+        document.getElementById('inputEmail').value = email;
+        document.getElementById('inputPassword').value = pass;
+    }
+</script>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
