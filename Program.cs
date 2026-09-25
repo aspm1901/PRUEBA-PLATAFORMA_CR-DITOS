@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PlataformaCreditos.Data;
+using PlataformaCreditos.Hubs;
 using PlataformaCreditos.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -58,6 +59,7 @@ builder.Services.AddScoped<ISolicitudesCacheService, SolicitudesCacheService>();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -93,5 +95,7 @@ app.MapControllerRoute(
 
 app.MapRazorPages()
    .WithStaticAssets();
+
+app.MapHub<SolicitudesHub>("/hubs/solicitudes");
 
 app.Run();

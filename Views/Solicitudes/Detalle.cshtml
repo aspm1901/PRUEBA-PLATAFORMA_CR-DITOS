@@ -7,22 +7,22 @@
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
+            <!-- Indicador de canal WebSocket -->
+            <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                <span class="text-muted small"><i class="bi bi-broadcast"></i> Canal en vivo</span>
+                <span id="ws-status-badge" class="badge bg-secondary">Conectando...</span>
+            </div>
+
+            <!-- Contenedor dinámico de alertas de actualización en tiempo real -->
+            <div id="ws-detalle-notification"></div>
+
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
                     <h4 class="mb-0"><i class="bi bi-file-earmark-text"></i> Detalle de Solicitud #@Model.Id</h4>
                     <div>
-                        @switch (Model.Estado)
-                        {
-                            case PlataformaCreditos.Models.EstadoSolicitud.Pendiente:
-                                <span class="badge bg-warning text-dark fs-6">Pendiente de Evaluación</span>
-                                break;
-                            case PlataformaCreditos.Models.EstadoSolicitud.Aprobado:
-                                <span class="badge bg-success fs-6">Aprobado</span>
-                                break;
-                            case PlataformaCreditos.Models.EstadoSolicitud.Rechazado:
-                                <span class="badge bg-danger fs-6">Rechazado</span>
-                                break;
-                        }
+                        <span id="detalle-estado-badge" class="badge @(Model.Estado == PlataformaCreditos.Models.EstadoSolicitud.Pendiente ? "bg-warning text-dark" : Model.Estado == PlataformaCreditos.Models.EstadoSolicitud.Aprobado ? "bg-success" : "bg-danger") fs-6">
+                            @Model.Estado.ToString()
+                        </span>
                     </div>
                 </div>
                 <div class="card-body p-4">
@@ -39,17 +39,19 @@
                     <div class="row mb-3">
                         <div class="col-sm-4 text-muted fw-semibold">Estado Actual:</div>
                         <div class="col-sm-8">
-                            <strong>@Model.Estado.ToString()</strong>
+                            <strong id="detalle-estado-texto">@Model.Estado.ToString()</strong>
                         </div>
                     </div>
 
-                    @if (Model.Estado == PlataformaCreditos.Models.EstadoSolicitud.Rechazado)
-                    {
-                        <div class="alert alert-danger mt-3" role="alert">
-                            <h6 class="alert-heading fw-bold"><i class="bi bi-x-circle-fill"></i> Motivo del Rechazo:</h6>
-                            <p class="mb-0">@(string.IsNullOrWhiteSpace(Model.MotivoRechazo) ? "Sin motivo especificado." : Model.MotivoRechazo)</p>
-                        </div>
-                    }
+                    <div id="detalle-motivo-container">
+                        @if (Model.Estado == PlataformaCreditos.Models.EstadoSolicitud.Rechazado)
+                        {
+                            <div class="alert alert-danger mt-3" role="alert">
+                                <h6 class="alert-heading fw-bold"><i class="bi bi-x-circle-fill"></i> Motivo del Rechazo:</h6>
+                                <p class="mb-0">@(string.IsNullOrWhiteSpace(Model.MotivoRechazo) ? "Sin motivo especificado." : Model.MotivoRechazo)</p>
+                            </div>
+                        }
+                    </div>
 
                     <hr class="my-4" />
 
@@ -97,3 +99,97 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/signalr.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const currentSolicitudId = @Model.Id;
+            const statusBadge = document.getElementById("ws-status-badge");
+            const estadoBadge = document.getElementById("detalle-estado-badge");
+            const estadoTexto = document.getElementById("detalle-estado-texto");
+            const motivoContainer = document.getElementById("detalle-motivo-container");
+            const notificationContainer = document.getElementById("ws-detalle-notification");
+
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/solicitudes", {
+                    transport: signalR.HttpTransportType.WebSockets,
+                    skipNegotiation: true
+                })
+                .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+                .build();
+
+            connection.onreconnecting(() => {
+                statusBadge.className = "badge bg-warning text-dark";
+                statusBadge.textContent = "Reconectando...";
+            });
+
+            connection.onreconnected(() => {
+                statusBadge.className = "badge bg-success";
+                statusBadge.textContent = "Conectado";
+                // Recuperar estado vigente del servidor tras reconexión
+                fetch("/Solicitudes/ObtenerEstadosVigentes")
+                    .then(r => r.json())
+                    .then(list => {
+                        const actual = list.find(s => s.id === currentSolicitudId);
+                        if (actual) {
+                            actualizarVista(actual.estado, actual.motivoRechazo);
+                        }
+                    });
+            });
+
+            connection.onclose(() => {
+                statusBadge.className = "badge bg-danger";
+                statusBadge.textContent = "Desconectado";
+            });
+
+            connection.start()
+                .then(() => {
+                    statusBadge.className = "badge bg-success";
+                    statusBadge.textContent = "Conectado (WebSocket)";
+                })
+                .catch(err => {
+                    console.error("Error WebSocket:", err);
+                    statusBadge.className = "badge bg-danger";
+                    statusBadge.textContent = "Error de Conexión";
+                });
+
+            // Requerimiento: Recibir evento y actualizar sin recargar página
+            connection.on("SolicitudEstadoActualizado", function (data) {
+                if (data.solicitudId === currentSolicitudId) {
+                    actualizarVista(data.estado, data.motivoRechazo);
+
+                    const alertType = data.estado === "Aprobado" ? "success" : "danger";
+                    notificationContainer.innerHTML = `
+                        <div class="alert alert-${alertType} alert-dismissible fade show shadow mb-3" role="alert">
+                            <h5 class="alert-heading mb-1"><i class="bi bi-bell-fill"></i> ¡Solicitud Evaluada en Tiempo Real!</h5>
+                            <p class="mb-0">El analista ha actualizado esta solicitud al estado: <strong>${data.estado}</strong>.</p>
+                            ${data.motivoRechazo ? `<small class="d-block mt-1"><strong>Motivo:</strong> ${data.motivoRechazo}</small>` : ''}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>`;
+                }
+            });
+
+            function actualizarVista(estado, motivoRechazo) {
+                if (estadoBadge) {
+                    estadoBadge.className = `badge bg-${estado === 'Aprobado' ? 'success' : 'danger'} fs-6`;
+                    estadoBadge.textContent = estado;
+                }
+                if (estadoTexto) {
+                    estadoTexto.textContent = estado;
+                }
+                if (motivoContainer) {
+                    if (estado === "Rechazado" && motivoRechazo) {
+                        motivoContainer.innerHTML = `
+                            <div class="alert alert-danger mt-3" role="alert">
+                                <h6 class="alert-heading fw-bold"><i class="bi bi-x-circle-fill"></i> Motivo del Rechazo:</h6>
+                                <p class="mb-0">${motivoRechazo}</p>
+                            </div>`;
+                    } else {
+                        motivoContainer.innerHTML = "";
+                    }
+                }
+            }
+        });
+    </script>
+}

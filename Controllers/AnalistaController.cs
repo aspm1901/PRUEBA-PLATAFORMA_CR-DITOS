@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using PlataformaCreditos.Data;
+using PlataformaCreditos.Hubs;
 using PlataformaCreditos.Models;
 using PlataformaCreditos.Services;
 
@@ -12,15 +14,18 @@ public class AnalistaController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly ISolicitudesCacheService _cacheService;
+    private readonly IHubContext<SolicitudesHub> _hubContext;
     private readonly ILogger<AnalistaController> _logger;
 
     public AnalistaController(
         ApplicationDbContext context,
         ISolicitudesCacheService cacheService,
+        IHubContext<SolicitudesHub> hubContext,
         ILogger<AnalistaController> logger)
     {
         _context = context;
         _cacheService = cacheService;
+        _hubContext = hubContext;
         _logger = logger;
     }
 
@@ -71,15 +76,31 @@ public class AnalistaController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        // Cambiar estado a Aprobado
+        // 1. Guardar primero el estado en la base de datos
         solicitud.Estado = EstadoSolicitud.Aprobado;
         solicitud.MotivoRechazo = null;
         await _context.SaveChangesAsync();
 
-        // Invalida caché de Redis para el usuario propietario
-        if (solicitud.Cliente != null)
+        // 2. Invalidar su caché Redis
+        if (solicitud.Cliente != null && !string.IsNullOrEmpty(solicitud.Cliente.UsuarioId))
         {
-            await _cacheService.InvalidateSolicitudesPorClienteIdAsync(solicitud.ClienteId);
+            await _cacheService.InvalidateSolicitudesUsuarioAsync(solicitud.Cliente.UsuarioId);
+        }
+
+        // 3. Emitir el evento SolicitudEstadoActualizado ÚNICAMENTE al usuario propietario (resuelto en servidor)
+        if (solicitud.Cliente != null && !string.IsNullOrEmpty(solicitud.Cliente.UsuarioId))
+        {
+            await _hubContext.Clients.User(solicitud.Cliente.UsuarioId).SendAsync(
+                "SolicitudEstadoActualizado",
+                new
+                {
+                    solicitudId = solicitud.Id,
+                    estado = "Aprobado",
+                    motivoRechazo = (string?)null
+                });
+
+            _logger.LogInformation(">>> [WEBSOCKET EMIT] Notificación enviada al usuario propietario {UserId} para solicitud #{Id}",
+                solicitud.Cliente.UsuarioId, solicitud.Id);
         }
 
         TempData["Success"] = $"¡Solicitud #{id} aprobada con éxito por un monto de {solicitud.MontoSolicitado:C}!";
@@ -117,15 +138,31 @@ public class AnalistaController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        // Cambiar estado a Rechazado
+        // 1. Guardar primero el estado en la base de datos
         solicitud.Estado = EstadoSolicitud.Rechazado;
         solicitud.MotivoRechazo = motivoRechazo.Trim();
         await _context.SaveChangesAsync();
 
-        // Invalida caché de Redis para el usuario propietario
-        if (solicitud.Cliente != null)
+        // 2. Invalidar su caché Redis
+        if (solicitud.Cliente != null && !string.IsNullOrEmpty(solicitud.Cliente.UsuarioId))
         {
-            await _cacheService.InvalidateSolicitudesPorClienteIdAsync(solicitud.ClienteId);
+            await _cacheService.InvalidateSolicitudesUsuarioAsync(solicitud.Cliente.UsuarioId);
+        }
+
+        // 3. Emitir el evento SolicitudEstadoActualizado ÚNICAMENTE al usuario propietario (resuelto en servidor)
+        if (solicitud.Cliente != null && !string.IsNullOrEmpty(solicitud.Cliente.UsuarioId))
+        {
+            await _hubContext.Clients.User(solicitud.Cliente.UsuarioId).SendAsync(
+                "SolicitudEstadoActualizado",
+                new
+                {
+                    solicitudId = solicitud.Id,
+                    estado = "Rechazado",
+                    motivoRechazo = solicitud.MotivoRechazo
+                });
+
+            _logger.LogInformation(">>> [WEBSOCKET EMIT] Notificación enviada al usuario propietario {UserId} para solicitud #{Id}",
+                solicitud.Cliente.UsuarioId, solicitud.Id);
         }
 
         TempData["Success"] = $"Solicitud #{id} rechazada correctamente. Motivo: {motivoRechazo}.";

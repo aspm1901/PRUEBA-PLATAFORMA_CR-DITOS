@@ -25,6 +25,20 @@
         </div>
     </div>
 
+    <!-- Indicador de Estado de Conexión WebSocket -->
+    <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded border">
+        <div class="d-flex align-items-center">
+            <span class="text-muted small me-2"><i class="bi bi-hdd-network"></i> Canal WebSocket:</span>
+            <span id="ws-status-badge" class="badge bg-secondary">
+                <span class="spinner-grow spinner-grow-sm me-1" role="status" aria-hidden="true"></span> Conectando...
+            </span>
+        </div>
+        <small id="ws-last-sync" class="text-muted"></small>
+    </div>
+
+    <!-- Contenedor dinámico de avisos WebSocket en tiempo real -->
+    <div id="ws-notification-container"></div>
+
     @if (ViewBag.InfoMessage != null)
     {
         <div class="alert alert-info" role="alert">
@@ -120,26 +134,17 @@
                                 <th class="text-end">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="solicitudes-table-body">
                             @foreach (var item in Model.Solicitudes)
                             {
-                                <tr>
+                                <tr id="solicitud-row-@item.Id">
                                     <td class="fw-bold">#@item.Id</td>
                                     <td>@item.FechaSolicitud.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                     <td>@item.MontoSolicitado.ToString("C")</td>
                                     <td>
-                                        @switch (item.Estado)
-                                        {
-                                            case PlataformaCreditos.Models.EstadoSolicitud.Pendiente:
-                                                <span class="badge bg-warning text-dark">Pendiente</span>
-                                                break;
-                                            case PlataformaCreditos.Models.EstadoSolicitud.Aprobado:
-                                                <span class="badge bg-success">Aprobado</span>
-                                                break;
-                                            case PlataformaCreditos.Models.EstadoSolicitud.Rechazado:
-                                                <span class="badge bg-danger">Rechazado</span>
-                                                break;
-                                        }
+                                        <span id="solicitud-badge-@item.Id" class="badge @(item.Estado == PlataformaCreditos.Models.EstadoSolicitud.Pendiente ? "bg-warning text-dark" : item.Estado == PlataformaCreditos.Models.EstadoSolicitud.Aprobado ? "bg-success" : "bg-danger")">
+                                            @item.Estado.ToString()
+                                        </span>
                                     </td>
                                     <td class="text-end">
                                         <a asp-action="Detalle" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
@@ -161,3 +166,128 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/signalr.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const statusBadge = document.getElementById("ws-status-badge");
+            const notificationContainer = document.getElementById("ws-notification-container");
+            const lastSync = document.getElementById("ws-last-sync");
+
+            // Configurar conexión SignalR forzando WebSocket como transporte
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/solicitudes", {
+                    transport: signalR.HttpTransportType.WebSockets,
+                    skipNegotiation: true
+                })
+                .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            function setConnected() {
+                statusBadge.className = "badge bg-success";
+                statusBadge.innerHTML = '<i class="bi bi-broadcast"></i> Conectado (WebSocket en vivo)';
+                lastSync.textContent = "Sincronizado: " + new Date().toLocaleTimeString();
+            }
+
+            function setReconnecting() {
+                statusBadge.className = "badge bg-warning text-dark";
+                statusBadge.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Reconectando...';
+            }
+
+            function setDisconnected() {
+                statusBadge.className = "badge bg-danger";
+                statusBadge.innerHTML = '<i class="bi bi-x-circle"></i> Desconectado';
+            }
+
+            // Manejadores del ciclo de vida de conexión
+            connection.onreconnecting(() => {
+                setReconnecting();
+            });
+
+            // Requerimiento: Al reconectar, consultar el estado vigente desde el servidor para recuperar cambios ocurridos
+            connection.onreconnected(() => {
+                setConnected();
+                recuperarEstadosVigentes();
+            });
+
+            connection.onclose(() => {
+                setDisconnected();
+            });
+
+            // Iniciar conexión WebSocket
+            connection.start()
+                .then(() => {
+                    setConnected();
+                    console.log(">>> [WebSocket] Conexión establecida con éxito en /hubs/solicitudes.");
+                })
+                .catch(err => {
+                    console.error(">>> [WebSocket] Error al conectar:", err);
+                    setDisconnected();
+                });
+
+            // Requerimiento: Recibir evento SolicitudEstadoActualizado y actualizar UI sin recargar la página
+            connection.on("SolicitudEstadoActualizado", function (data) {
+                console.log(">>> [WebSocket Event Received]:", data);
+
+                const alertType = data.estado === "Aprobado" ? "success" : "danger";
+                const icon = data.estado === "Aprobado" ? "check-circle-fill" : "x-circle-fill";
+
+                // 1. Mostrar aviso en tiempo real sin recargar página
+                const alertHtml = `
+                    <div class="alert alert-${alertType} alert-dismissible fade show shadow-sm mb-3" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-${icon} fs-4 me-2"></i>
+                            <div>
+                                <h6 class="mb-0 fw-bold">¡Actualización en tiempo real recibida!</h6>
+                                <div>Tu solicitud de crédito <strong>#${data.solicitudId}</strong> ha sido evaluada: 
+                                    <span class="badge bg-${alertType} ms-1">${data.estado}</span>
+                                </div>
+                                ${data.motivoRechazo ? `<small class="d-block mt-1"><strong>Motivo:</strong> ${data.motivoRechazo}</small>` : ''}
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                    </div>`;
+
+                notificationContainer.insertAdjacentHTML("afterbegin", alertHtml);
+
+                // 2. Actualizar el estado visual del renglón en la tabla sin recargar página
+                const badge = document.getElementById(`solicitud-badge-${data.solicitudId}`);
+                const row = document.getElementById(`solicitud-row-${data.solicitudId}`);
+
+                if (badge) {
+                    badge.className = `badge bg-${alertType}`;
+                    badge.textContent = data.estado;
+                }
+
+                if (row) {
+                    row.classList.add("table-warning");
+                    setTimeout(() => {
+                        row.classList.remove("table-warning");
+                    }, 3000);
+                }
+            });
+
+            // Función para sincronizar estados si hubo desconexión temporal
+            function recuperarEstadosVigentes() {
+                fetch("/Solicitudes/ObtenerEstadosVigentes")
+                    .then(response => response.json())
+                    .then(data => {
+                        if (Array.isArray(data)) {
+                            data.forEach(item => {
+                                const badge = document.getElementById(`solicitud-badge-${item.id}`);
+                                if (badge) {
+                                    const alertType = item.estado === "Aprobado" ? "bg-success" : item.estado === "Rechazado" ? "bg-danger" : "bg-warning text-dark";
+                                    badge.className = `badge ${alertType}`;
+                                    badge.textContent = item.estado;
+                                }
+                            });
+                            lastSync.textContent = "Sincronizado tras reconexión: " + new Date().toLocaleTimeString();
+                        }
+                    })
+                    .catch(err => console.error("Error al sincronizar estados vigentes:", err));
+            }
+        });
+    </script>
+}
