@@ -137,3 +137,58 @@ body {
   border-radius: 6px;
   padding: 0.35em 0.65em;
 }
+
+/* ==============================================================================
+   Icon Boxes para Tarjetas Funcionales
+   ============================================================================== */
+.card-icon-box {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  flex-shrink: 0;
+  font-size: 1.35rem;
+}
+
+.card-icon-emerald {
+  background-color: #ecfdf5 !important;
+  color: #059669 !important;
+  border: 1px solid #a7f3d0;
+}
+
+.card-icon-blue {
+  background-color: #eff6ff !important;
+  color: #2563eb !important;
+  border: 1px solid #bfdbfe;
+}
+
+.card-icon-amber {
+  background-color: #fef3c7 !important;
+  color: #d97706 !important;
+  border: 1px solid #fde68a;
+}
+
+/* ==============================================================================
+   Mejoras Responsivas (Móvil, Tablet y Pantalla Dividida)
+   ============================================================================== */
+@media (max-width: 991.98px) {
+  .navbar-collapse {
+    background: #0f172a;
+    padding: 1.25rem;
+    border-radius: 12px;
+    margin-top: 0.75rem;
+    border: 1px solid #334155;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  }
+  
+  .navbar-nav .nav-link {
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+  }
+
+  .navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+}

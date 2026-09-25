@@ -5,21 +5,21 @@
 }
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-3">
+        <h2 class="mb-0">
             <i class="bi bi-wallet2 text-primary"></i> Mis Solicitudes de Crédito
         </h2>
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex flex-wrap align-items-center gap-2">
             @if (Model.Cliente != null)
             {
-                <span class="badge bg-info text-dark">
+                <span class="badge bg-emerald text-white">
                     Ingresos: @Model.Cliente.IngresosMensuales.ToString("C")
                 </span>
                 <span class="badge @(Model.Cliente.Activo ? "bg-success" : "bg-danger")">
                     @(Model.Cliente.Activo ? "Activo" : "Inactivo")
                 </span>
             }
-            <a asp-action="Crear" class="btn btn-success btn-sm">
+            <a asp-action="Crear" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus-circle"></i> Nueva Solicitud
             </a>
         </div>
@@ -59,37 +59,35 @@
         </div>
         <div class="card-body">
             <form asp-action="MisSolicitudes" method="get" class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Estado:</label>
-                    <select name="estado" class="form-select">
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <label class="form-label small fw-semibold">Estado:</label>
+                    <select name="estado" class="form-select form-select-sm">
                         <option value="">-- Todos los estados --</option>
                         <option value="Pendiente" selected="@(Model.Estado == PlataformaCreditos.Models.EstadoSolicitud.Pendiente)">Pendiente</option>
                         <option value="Aprobado" selected="@(Model.Estado == PlataformaCreditos.Models.EstadoSolicitud.Aprobado)">Aprobado</option>
                         <option value="Rechazado" selected="@(Model.Estado == PlataformaCreditos.Models.EstadoSolicitud.Rechazado)">Rechazado</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">Monto Mínimo:</label>
-                    <input type="number" step="0.01" name="montoMin" value="@Model.MontoMin" class="form-control" placeholder="0.00" />
+                <div class="col-6 col-sm-6 col-lg-2">
+                    <label class="form-label small fw-semibold">Monto Mínimo:</label>
+                    <input type="number" step="0.01" name="montoMin" value="@Model.MontoMin" class="form-control form-control-sm" placeholder="0.00" />
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">Monto Máximo:</label>
-                    <input type="number" step="0.01" name="montoMax" value="@Model.MontoMax" class="form-control" placeholder="0.00" />
+                <div class="col-6 col-sm-6 col-lg-2">
+                    <label class="form-label small fw-semibold">Monto Máximo:</label>
+                    <input type="number" step="0.01" name="montoMax" value="@Model.MontoMax" class="form-control form-control-sm" placeholder="0.00" />
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">Desde:</label>
-                    <input type="date" name="fechaInicio" value="@(Model.FechaInicio?.ToString("yyyy-MM-dd"))" class="form-control" />
+                <div class="col-6 col-sm-6 col-lg-2">
+                    <label class="form-label small fw-semibold">Desde:</label>
+                    <input type="date" name="fechaInicio" value="@(Model.FechaInicio?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">Hasta:</label>
-                    <input type="date" name="fechaFin" value="@(Model.FechaFin?.ToString("yyyy-MM-dd"))" class="form-control" />
+                <div class="col-6 col-sm-6 col-lg-2">
+                    <label class="form-label small fw-semibold">Hasta:</label>
+                    <input type="date" name="fechaFin" value="@(Model.FechaFin?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
                 </div>
-                <div class="col-md-1 d-flex align-items-end">
-                    <div class="btn-group w-100" role="group">
-                        <button type="submit" class="btn btn-primary" title="Aplicar filtros">
-                            Filtrar
-                        </button>
-                    </div>
+                <div class="col-12 col-lg-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary btn-sm w-100" title="Aplicar filtros">
+                        <i class="bi bi-funnel-fill"></i> Filtrar
+                    </button>
                 </div>
                 <div class="col-12 text-end">
                     <a asp-action="MisSolicitudes" class="btn btn-outline-secondary btn-sm">Limpiar Filtros</a>

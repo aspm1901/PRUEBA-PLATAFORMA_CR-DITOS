@@ -6,7 +6,7 @@
 <div class="p-4 mb-4 text-white rounded-4 shadow-sm" style="background: linear-gradient(135deg, #0f172a 0%, #064e3b 100%);">
     <div class="container-fluid py-2">
         <div class="d-flex align-items-center mb-2">
-            <div class="bg-white text-success rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 50px; height: 50px;">
+            <div class="bg-white text-success rounded-3 d-flex align-items-center justify-content-center me-3 shadow-sm flex-shrink-0" style="width: 48px; height: 48px;">
                 <i class="bi bi-shield-shaded fs-3 text-emerald"></i>
             </div>
             <div>
@@ -17,26 +17,34 @@
 
         @if (User.Identity?.IsAuthenticated == true)
         {
-            <div class="mt-3 pt-3 border-top border-white border-opacity-25 d-flex flex-wrap align-items-center gap-2">
-                <span class="badge bg-white text-primary px-3 py-2 fs-6">
-                    <i class="bi bi-person-fill me-1"></i> @User.Identity.Name
-                </span>
+            <div class="mt-3 pt-3 border-top border-white border-opacity-25 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="badge bg-white text-dark px-3 py-2 fs-6 shadow-sm">
+                        <i class="bi bi-person-fill text-emerald me-1"></i> @User.Identity.Name
+                    </span>
+                    @if (User.IsInRole("Analista"))
+                    {
+                        <span class="badge bg-warning text-dark px-3 py-2 fs-6">
+                            <i class="bi bi-shield-check me-1"></i> Analista
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-emerald text-white px-3 py-2 fs-6">
+                            <i class="bi bi-person-check me-1"></i> Cliente
+                        </span>
+                    }
+                </div>
                 @if (User.IsInRole("Analista"))
                 {
-                    <span class="badge bg-warning text-dark px-3 py-2 fs-6">
-                        <i class="bi bi-shield-check me-1"></i> Analista
-                    </span>
-                    <a asp-controller="Analista" asp-action="Index" class="btn btn-warning btn-sm fw-semibold px-3 ms-auto">
+                    <a asp-controller="Analista" asp-action="Index" class="btn btn-warning btn-sm fw-semibold px-3">
                         <i class="bi bi-shield-check me-1"></i> Ir al Panel de Analista
                     </a>
                 }
                 else
                 {
-                    <span class="badge bg-info text-dark px-3 py-2 fs-6">
-                        <i class="bi bi-person me-1"></i> Cliente
-                    </span>
-                    <a asp-controller="Solicitudes" asp-action="MisSolicitudes" class="btn btn-light btn-sm text-primary fw-semibold px-3 ms-auto">
-                        <i class="bi bi-card-checklist me-1"></i> Ver Mis Solicitudes
+                    <a asp-controller="Solicitudes" asp-action="MisSolicitudes" class="btn btn-light btn-sm text-dark fw-semibold px-3 shadow-sm">
+                        <i class="bi bi-card-checklist text-emerald me-1"></i> Ver Mis Solicitudes
                     </a>
                 }
             </div>
@@ -58,43 +66,43 @@
     @if (User.IsInRole("Analista"))
     {
         <div class="row g-4 mb-4">
-            <div class="col-md-6">
+            <div class="col-12 col-md-6">
                 <div class="card h-100 border-0 shadow-sm rounded-3">
-                    <div class="card-body p-4">
+                    <div class="card-body p-4 d-flex flex-column">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle me-3">
-                                <i class="bi bi-shield-check fs-3"></i>
+                            <div class="card-icon-box card-icon-emerald me-3">
+                                <i class="bi bi-shield-check"></i>
                             </div>
                             <div>
                                 <h5 class="card-title fw-bold mb-0">Panel de Evaluación</h5>
                                 <small class="text-muted">Aprobar o rechazar créditos</small>
                             </div>
                         </div>
-                        <p class="card-text text-secondary">
-                            Revisa solicitudes pendientes con diagnóstico de regla 5X y resolución inmediata.
+                        <p class="card-text text-secondary mb-4">
+                            Revisa solicitudes pendientes con diagnóstico de regla 5X y resolución inmediata en tiempo real.
                         </p>
-                        <a asp-controller="Analista" asp-action="Index" class="btn btn-outline-primary fw-semibold">
+                        <a asp-controller="Analista" asp-action="Index" class="btn btn-outline-primary fw-semibold mt-auto w-100">
                             Entrar al Panel <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-12 col-md-6">
                 <div class="card h-100 border-0 shadow-sm rounded-3">
-                    <div class="card-body p-4">
+                    <div class="card-body p-4 d-flex flex-column">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle me-3">
-                                <i class="bi bi-bell fs-3"></i>
+                            <div class="card-icon-box card-icon-amber me-3">
+                                <i class="bi bi-bell"></i>
                             </div>
                             <div>
                                 <h5 class="card-title fw-bold mb-0">Buzón de Notificaciones</h5>
-                                <small class="text-muted">Historial de avisos</small>
+                                <small class="text-muted">Historial de resoluciones</small>
                             </div>
                         </div>
-                        <p class="card-text text-secondary">
-                            Consulta la bitácora de mensajes y eventos procesados.
+                        <p class="card-text text-secondary mb-4">
+                            Consulta la bitácora de mensajes y eventos procesados de las solicitudes.
                         </p>
-                        <a asp-controller="Solicitudes" asp-action="MisNotificaciones" class="btn btn-outline-info fw-semibold">
+                        <a asp-controller="Solicitudes" asp-action="MisNotificaciones" class="btn btn-outline-primary fw-semibold mt-auto w-100">
                             Ver Notificaciones <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                     </div>
@@ -105,64 +113,64 @@
     else
     {
         <div class="row g-4 mb-4">
-            <div class="col-md-4">
+            <div class="col-12 col-md-6 col-lg-4">
                 <div class="card h-100 border-0 shadow-sm rounded-3">
-                    <div class="card-body p-4">
+                    <div class="card-body p-4 d-flex flex-column">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle me-3">
-                                <i class="bi bi-card-checklist fs-3"></i>
+                            <div class="card-icon-box card-icon-emerald me-3">
+                                <i class="bi bi-card-checklist"></i>
                             </div>
                             <div>
                                 <h5 class="card-title fw-bold mb-0">Mis Solicitudes</h5>
                                 <small class="text-muted">Historial de créditos</small>
                             </div>
                         </div>
-                        <p class="card-text text-secondary">
-                            Consulta el estado de tus solicitudes con filtros por monto y fechas.
+                        <p class="card-text text-secondary mb-4">
+                            Consulta el estado de tus solicitudes con filtros por monto y fechas en tiempo real.
                         </p>
-                        <a asp-controller="Solicitudes" asp-action="MisSolicitudes" class="btn btn-outline-primary fw-semibold">
+                        <a asp-controller="Solicitudes" asp-action="MisSolicitudes" class="btn btn-outline-primary fw-semibold mt-auto w-100">
                             Ir a Mis Solicitudes <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-6 col-lg-4">
                 <div class="card h-100 border-0 shadow-sm rounded-3">
-                    <div class="card-body p-4">
+                    <div class="card-body p-4 d-flex flex-column">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle me-3">
-                                <i class="bi bi-plus-circle fs-3"></i>
+                            <div class="card-icon-box card-icon-blue me-3">
+                                <i class="bi bi-plus-circle"></i>
                             </div>
                             <div>
                                 <h5 class="card-title fw-bold mb-0">Nueva Solicitud</h5>
                                 <small class="text-muted">Pedir crédito</small>
                             </div>
                         </div>
-                        <p class="card-text text-secondary">
+                        <p class="card-text text-secondary mb-4">
                             Registra una nueva solicitud respetando el tope de 10 veces tus ingresos mensuales.
                         </p>
-                        <a asp-controller="Solicitudes" asp-action="Crear" class="btn btn-outline-success fw-semibold">
+                        <a asp-controller="Solicitudes" asp-action="Crear" class="btn btn-outline-primary fw-semibold mt-auto w-100">
                             Solicitar Crédito <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-6 col-lg-4">
                 <div class="card h-100 border-0 shadow-sm rounded-3">
-                    <div class="card-body p-4">
+                    <div class="card-body p-4 d-flex flex-column">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle me-3">
-                                <i class="bi bi-bell fs-3"></i>
+                            <div class="card-icon-box card-icon-amber me-3">
+                                <i class="bi bi-bell"></i>
                             </div>
                             <div>
                                 <h5 class="card-title fw-bold mb-0">Mis Notificaciones</h5>
-                                <small class="text-muted">Avisos</small>
+                                <small class="text-muted">Avisos y resoluciones</small>
                             </div>
                         </div>
-                        <p class="card-text text-secondary">
-                            Revisa el buzón de notificaciones de tus solicitudes.
+                        <p class="card-text text-secondary mb-4">
+                            Revisa el buzón con las confirmaciones y resoluciones de tus solicitudes.
                         </p>
-                        <a asp-controller="Solicitudes" asp-action="MisNotificaciones" class="btn btn-outline-info fw-semibold">
+                        <a asp-controller="Solicitudes" asp-action="MisNotificaciones" class="btn btn-outline-primary fw-semibold mt-auto w-100">
                             Ver Notificaciones <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                     </div>
