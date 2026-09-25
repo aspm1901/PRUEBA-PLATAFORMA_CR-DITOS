@@ -1,0 +1,154 @@
+@model PlataformaCreditos.Models.ViewModels.MisSolicitudesViewModel
+
+@{
+    ViewData["Title"] = "Mis Solicitudes de Crédito";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>
+            <i class="bi bi-wallet2 text-primary"></i> Mis Solicitudes de Crédito
+        </h2>
+        @if (Model.Cliente != null)
+        {
+            <div class="text-end">
+                <span class="badge bg-info text-dark me-2">
+                    Ingresos Mensuales: @Model.Cliente.IngresosMensuales.ToString("C")
+                </span>
+                <span class="badge @(Model.Cliente.Activo ? "bg-success" : "bg-danger")">
+                    @(Model.Cliente.Activo ? "Cliente Activo" : "Cliente Inactivo")
+                </span>
+            </div>
+        }
+    </div>
+
+    @if (ViewBag.InfoMessage != null)
+    {
+        <div class="alert alert-info" role="alert">
+            @ViewBag.InfoMessage
+        </div>
+    }
+
+    <!-- Alertas de validaciones Server-Side -->
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Error en los filtros:</h5>
+            <ul class="mb-0">
+                @foreach (var modelState in ViewData.ModelState.Values)
+                {
+                    foreach (var error in modelState.Errors)
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                }
+            </ul>
+        </div>
+    }
+
+    <!-- Filtros de búsqueda (Server-side) -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <strong><i class="bi bi-funnel"></i> Filtros de Búsqueda</strong>
+        </div>
+        <div class="card-body">
+            <form asp-action="MisSolicitudes" method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Estado:</label>
+                    <select name="estado" class="form-select">
+                        <option value="">-- Todos los estados --</option>
+                        <option value="Pendiente" selected="@(Model.Estado == PlataformaCreditos.Models.EstadoSolicitud.Pendiente)">Pendiente</option>
+                        <option value="Aprobado" selected="@(Model.Estado == PlataformaCreditos.Models.EstadoSolicitud.Aprobado)">Aprobado</option>
+                        <option value="Rechazado" selected="@(Model.Estado == PlataformaCreditos.Models.EstadoSolicitud.Rechazado)">Rechazado</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Monto Mínimo:</label>
+                    <input type="number" step="0.01" name="montoMin" value="@Model.MontoMin" class="form-control" placeholder="0.00" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Monto Máximo:</label>
+                    <input type="number" step="0.01" name="montoMax" value="@Model.MontoMax" class="form-control" placeholder="0.00" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Desde:</label>
+                    <input type="date" name="fechaInicio" value="@(Model.FechaInicio?.ToString("yyyy-MM-dd"))" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Hasta:</label>
+                    <input type="date" name="fechaFin" value="@(Model.FechaFin?.ToString("yyyy-MM-dd"))" class="form-control" />
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <div class="btn-group w-100" role="group">
+                        <button type="submit" class="btn btn-primary" title="Aplicar filtros">
+                            Filtrar
+                        </button>
+                    </div>
+                </div>
+                <div class="col-12 text-end">
+                    <a asp-action="MisSolicitudes" class="btn btn-outline-secondary btn-sm">Limpiar Filtros</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Listado de Solicitudes -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <span class="fw-bold">Listado de Solicitudes (@Model.Solicitudes.Count)</span>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Solicitudes.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th># Solicitud</th>
+                                <th>Fecha Solicitud</th>
+                                <th>Monto Solicitado</th>
+                                <th>Estado</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Solicitudes)
+                            {
+                                <tr>
+                                    <td class="fw-bold">#@item.Id</td>
+                                    <td>@item.FechaSolicitud.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@item.MontoSolicitado.ToString("C")</td>
+                                    <td>
+                                        @switch (item.Estado)
+                                        {
+                                            case PlataformaCreditos.Models.EstadoSolicitud.Pendiente:
+                                                <span class="badge bg-warning text-dark">Pendiente</span>
+                                                break;
+                                            case PlataformaCreditos.Models.EstadoSolicitud.Aprobado:
+                                                <span class="badge bg-success">Aprobado</span>
+                                                break;
+                                            case PlataformaCreditos.Models.EstadoSolicitud.Rechazado:
+                                                <span class="badge bg-danger">Rechazado</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <a asp-action="Detalle" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
+                                            Ver Detalle
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="p-4 text-center text-muted">
+                    <p class="mb-0">No se encontraron solicitudes que coincidan con los criterios de búsqueda.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
