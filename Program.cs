@@ -6,6 +6,10 @@ using PlataformaCreditos.Services;
 
 using Microsoft.AspNetCore.HttpOverrides;
 
+var defaultCulture = new System.Globalization.CultureInfo("en-US");
+System.Globalization.CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
+System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Configuración de reenvío de encabezados para proxies inversos (Render.com)
