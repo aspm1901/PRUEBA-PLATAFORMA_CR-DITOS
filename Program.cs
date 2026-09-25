@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PlataformaCreditos.Data;
+using PlataformaCreditos.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,36 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 .AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+// --- CONFIGURACIÓN DE REDIS (SESIÓN + CACHÉ DISTRIBUIDA) ---
+var redisConnectionString = builder.Configuration["Redis:ConnectionString"]
+    ?? builder.Configuration["Redis__ConnectionString"]
+    ?? Environment.GetEnvironmentVariable("Redis__ConnectionString");
+
+if (!string.IsNullOrWhiteSpace(redisConnectionString))
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnectionString;
+        options.InstanceName = "PlataformaCreditos_";
+    });
+}
+else
+{
+    builder.Services.AddDistributedMemoryCache();
+}
+
+// Sesión respaldada en Redis (usa IDistributedCache registrado arriba)
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.Name = ".PlataformaCreditos.Session";
+});
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ISolicitudesCacheService, SolicitudesCacheService>();
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
@@ -46,6 +77,9 @@ else
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+// Middleware de sesión (respaldada en Redis)
+app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();

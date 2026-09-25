@@ -99,6 +99,12 @@
     <div class="card shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
             <span class="fw-bold">Listado de Solicitudes (@Model.Solicitudes.Count)</span>
+            @if (ViewBag.OrigenDatos != null)
+            {
+                <span class="badge bg-secondary text-white fw-normal">
+                    <i class="bi bi-hdd-network"></i> @ViewBag.OrigenDatos
+                </span>
+            }
         </div>
         <div class="card-body p-0">
             @if (Model.Solicitudes.Any())

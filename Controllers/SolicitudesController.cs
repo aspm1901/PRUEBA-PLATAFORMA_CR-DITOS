@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PlataformaCreditos.Data;
 using PlataformaCreditos.Models;
 using PlataformaCreditos.Models.ViewModels;
+using PlataformaCreditos.Services;
 
 namespace PlataformaCreditos.Controllers;
 
@@ -13,11 +15,16 @@ public class SolicitudesController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<IdentityUser> _userManager;
+    private readonly ISolicitudesCacheService _cacheService;
 
-    public SolicitudesController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+    public SolicitudesController(
+        ApplicationDbContext context,
+        UserManager<IdentityUser> userManager,
+        ISolicitudesCacheService cacheService)
     {
         _context = context;
         _userManager = userManager;
+        _cacheService = cacheService;
     }
 
     // GET: Solicitudes/MisSolicitudes
@@ -75,13 +82,28 @@ public class SolicitudesController : Controller
             ModelState.AddModelError("FechaFin", "La fecha de inicio no puede ser posterior a la fecha de fin.");
         }
 
-        // Si hay errores de validación en los filtros, mostramos los errores y la lista vacía para corrección
+        // Si hay errores de validación en los filtros, mostramos los errores
         if (!ModelState.IsValid)
         {
             return View(viewModel);
         }
 
-        // Construcción de la consulta con filtros
+        bool tieneFiltros = estado.HasValue || montoMin.HasValue || montoMax.HasValue || fechaInicio.HasValue || fechaFin.HasValue;
+
+        // --- MANEJO DE CACHÉ REDIS (60 SEGUNDOS) ---
+        // Si no hay filtros aplicados, consultamos/guardamos en la caché de Redis
+        if (!tieneFiltros)
+        {
+            var cachedSolicitudes = await _cacheService.GetSolicitudesUsuarioAsync(user.Id, cliente);
+            if (cachedSolicitudes != null)
+            {
+                viewModel.Solicitudes = cachedSolicitudes;
+                ViewBag.OrigenDatos = "Redis Cache (TTL: 60s)";
+                return View(viewModel);
+            }
+        }
+
+        // Consulta directa a Base de Datos
         IQueryable<SolicitudCredito> query = _context.SolicitudesCredito
             .Where(s => s.ClienteId == cliente.Id);
 
@@ -112,10 +134,22 @@ public class SolicitudesController : Controller
             query = query.Where(s => s.FechaSolicitud <= fin);
         }
 
-        viewModel.Solicitudes = await query
+        var listaDb = await query
             .OrderByDescending(s => s.FechaSolicitud)
             .ToListAsync();
 
+        // Si no tiene filtros, guardamos en la caché de Redis por 60s
+        if (!tieneFiltros)
+        {
+            await _cacheService.SetSolicitudesUsuarioAsync(user.Id, listaDb, TimeSpan.FromSeconds(60));
+            ViewBag.OrigenDatos = "Base de Datos SQLite (Guardado en Redis por 60s)";
+        }
+        else
+        {
+            ViewBag.OrigenDatos = "Consulta Filtrada en Base de Datos";
+        }
+
+        viewModel.Solicitudes = listaDb;
         return View(viewModel);
     }
 
@@ -146,6 +180,11 @@ public class SolicitudesController : Controller
         {
             return Forbid();
         }
+
+        // --- SESIÓN REDIS-BACKED ---
+        // Guardar la última solicitud visitada en la sesión distribuida
+        HttpContext.Session.SetInt32("UltimaSolicitudId", solicitud.Id);
+        HttpContext.Session.SetString("UltimaSolicitudMonto", solicitud.MontoSolicitado.ToString("C"));
 
         return View(solicitud);
     }
@@ -266,12 +305,16 @@ public class SolicitudesController : Controller
         _context.SolicitudesCredito.Add(nuevaSolicitud);
         await _context.SaveChangesAsync();
 
+        // --- INVALIDACIÓN DE CACHÉ EN REDIS ---
+        // Al registrarse una nueva solicitud, se invalida la caché del listado del usuario
+        await _cacheService.InvalidateSolicitudesUsuarioAsync(user.Id);
+
         // Feedback claro en la misma vista (éxito)
         model.MensajeExito = $"¡Solicitud #{nuevaSolicitud.Id} registrada exitosamente por un monto de {nuevaSolicitud.MontoSolicitado:C}! Su estado actual es: Pendiente de Evaluación.";
         model.MensajeError = null;
         model.SolicitudIdCreada = nuevaSolicitud.Id;
-        model.TieneSolicitudPendiente = true; // Ahora tiene una pendiente activa
-        model.MontoSolicitado = 0; // Limpiar formulario
+        model.TieneSolicitudPendiente = true;
+        model.MontoSolicitado = 0;
 
         return View(model);
     }
