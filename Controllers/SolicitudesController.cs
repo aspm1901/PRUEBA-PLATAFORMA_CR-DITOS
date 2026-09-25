@@ -321,7 +321,8 @@ public class SolicitudesController : Controller
             MessageId = Guid.NewGuid(),
             SolicitudId = nuevaSolicitud.Id,
             UsuarioId = user.Id,
-            FechaEventoUtc = DateTime.UtcNow
+            FechaEventoUtc = DateTime.UtcNow,
+            Texto = $"Tu solicitud #{nuevaSolicitud.Id} por {nuevaSolicitud.MontoSolicitado:C} ha sido registrada y se encuentra en evaluación."
         };
 
         // Usar confirmación del publicador para verificar aceptación por el broker

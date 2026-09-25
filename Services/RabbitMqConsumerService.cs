@@ -119,7 +119,9 @@ public class RabbitMqConsumerService : BackgroundService
                         MessageId = message.MessageId,
                         SolicitudId = message.SolicitudId,
                         UsuarioId = message.UsuarioId,
-                        Texto = "Recibimos tu solicitud de crédito y está pendiente de evaluación.",
+                        Texto = !string.IsNullOrWhiteSpace(message.Texto) 
+                            ? message.Texto 
+                            : "Recibimos tu solicitud de crédito y está pendiente de evaluación.",
                         FechaProcesamientoUtc = DateTime.UtcNow
                     };
 

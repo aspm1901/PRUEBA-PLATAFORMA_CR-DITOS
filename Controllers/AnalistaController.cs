@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using PlataformaCreditos.Data;
 using PlataformaCreditos.Hubs;
 using PlataformaCreditos.Models;
+using PlataformaCreditos.Models.Messages;
 using PlataformaCreditos.Services;
 
 namespace PlataformaCreditos.Controllers;
@@ -15,17 +16,20 @@ public class AnalistaController : Controller
     private readonly ApplicationDbContext _context;
     private readonly ISolicitudesCacheService _cacheService;
     private readonly IHubContext<SolicitudesHub> _hubContext;
+    private readonly IRabbitMqProducer _rabbitMqProducer;
     private readonly ILogger<AnalistaController> _logger;
 
     public AnalistaController(
         ApplicationDbContext context,
         ISolicitudesCacheService cacheService,
         IHubContext<SolicitudesHub> hubContext,
+        IRabbitMqProducer rabbitMqProducer,
         ILogger<AnalistaController> logger)
     {
         _context = context;
         _cacheService = cacheService;
         _hubContext = hubContext;
+        _rabbitMqProducer = rabbitMqProducer;
         _logger = logger;
     }
 
@@ -103,6 +107,19 @@ public class AnalistaController : Controller
                 solicitud.Cliente.UsuarioId, solicitud.Id);
         }
 
+        // 4. Publicar evento en CloudAMQP para la bandeja de notificaciones del cliente
+        if (solicitud.Cliente != null && !string.IsNullOrEmpty(solicitud.Cliente.UsuarioId))
+        {
+            await _rabbitMqProducer.PublicarSolicitudRegistradaAsync(new SolicitudRegistradaMessage
+            {
+                MessageId = Guid.NewGuid(),
+                SolicitudId = solicitud.Id,
+                UsuarioId = solicitud.Cliente.UsuarioId,
+                FechaEventoUtc = DateTime.UtcNow,
+                Texto = $"¡Felicidades! Tu solicitud de crédito #{solicitud.Id} por {solicitud.MontoSolicitado:C} ha sido Aprobada."
+            });
+        }
+
         TempData["Success"] = $"¡Solicitud #{id} aprobada con éxito por un monto de {solicitud.MontoSolicitado:C}!";
         _logger.LogInformation("Solicitud #{Id} aprobada por analista {User}.", id, User.Identity?.Name);
 
@@ -163,6 +180,19 @@ public class AnalistaController : Controller
 
             _logger.LogInformation(">>> [WEBSOCKET EMIT] Notificación enviada al usuario propietario {UserId} para solicitud #{Id}",
                 solicitud.Cliente.UsuarioId, solicitud.Id);
+        }
+
+        // 4. Publicar evento en CloudAMQP para la bandeja de notificaciones del cliente
+        if (solicitud.Cliente != null && !string.IsNullOrEmpty(solicitud.Cliente.UsuarioId))
+        {
+            await _rabbitMqProducer.PublicarSolicitudRegistradaAsync(new SolicitudRegistradaMessage
+            {
+                MessageId = Guid.NewGuid(),
+                SolicitudId = solicitud.Id,
+                UsuarioId = solicitud.Cliente.UsuarioId,
+                FechaEventoUtc = DateTime.UtcNow,
+                Texto = $"Tu solicitud de crédito #{solicitud.Id} ha sido Rechazada. Motivo: {solicitud.MotivoRechazo}."
+            });
         }
 
         TempData["Success"] = $"Solicitud #{id} rechazada correctamente. Motivo: {motivoRechazo}.";
