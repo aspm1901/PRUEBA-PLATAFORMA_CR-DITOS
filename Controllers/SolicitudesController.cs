@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using PlataformaCreditos.Data;
+using PlataformaCreditos.Hubs;
 using PlataformaCreditos.Models;
 using PlataformaCreditos.Models.Messages;
 using PlataformaCreditos.Models.ViewModels;
@@ -18,17 +20,20 @@ public class SolicitudesController : Controller
     private readonly UserManager<IdentityUser> _userManager;
     private readonly ISolicitudesCacheService _cacheService;
     private readonly IRabbitMqProducer _rabbitMqProducer;
+    private readonly IHubContext<SolicitudesHub> _hubContext;
 
     public SolicitudesController(
         ApplicationDbContext context,
         UserManager<IdentityUser> userManager,
         ISolicitudesCacheService cacheService,
-        IRabbitMqProducer rabbitMqProducer)
+        IRabbitMqProducer rabbitMqProducer,
+        IHubContext<SolicitudesHub> hubContext)
     {
         _context = context;
         _userManager = userManager;
         _cacheService = cacheService;
         _rabbitMqProducer = rabbitMqProducer;
+        _hubContext = hubContext;
     }
 
     // GET: Solicitudes/MisSolicitudes
@@ -312,6 +317,14 @@ public class SolicitudesController : Controller
         // --- INVALIDACIÓN DE CACHÉ EN REDIS ---
         // Al registrarse una nueva solicitud, se invalida la caché del listado del usuario
         await _cacheService.InvalidateSolicitudesUsuarioAsync(user.Id);
+
+        // --- NOTIFICACIÓN EN TIEMPO REAL AL PANEL DE ANALISTAS (WEBSOCKET) ---
+        await _hubContext.Clients.All.SendAsync("NuevaSolicitudCreada", new
+        {
+            solicitudId = nuevaSolicitud.Id,
+            monto = nuevaSolicitud.MontoSolicitado,
+            cliente = user.Email
+        });
 
         // --- PUBLICACIÓN ASÍNCRONA EN CLOUD MQ (RABBITMQ) ---
         // Requerimiento: Publicar un mensaje JSON persistente de tipo SolicitudRegistrada con MessageId (UUID), SolicitudId, UsuarioId y FechaEventoUtc
