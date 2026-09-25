@@ -1,0 +1,44 @@
+## Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## Visual Studio cache / temporary files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Visual Studio Code
+.vscode/
+
+## JetBrains Rider
+.idea/
+
+## User-specific files
+*.rsuser
+*.suo
+*.user
+*.useroptions
+
+## SQLite database files (local dev)
+*.db
+*.db-shm
+*.db-wal
+
+## Environment / Local Secrets
+appsettings.Local.json
+appsettings.Secrets.json
+.env
