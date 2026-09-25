@@ -13,6 +13,7 @@ public class ApplicationDbContext : IdentityDbContext
 
     public DbSet<Cliente> Clientes => Set<Cliente>();
     public DbSet<SolicitudCredito> SolicitudesCredito => Set<SolicitudCredito>();
+    public DbSet<Notificacion> Notificaciones => Set<Notificacion>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -46,6 +47,13 @@ public class ApplicationDbContext : IdentityDbContext
             // Restricción: Un cliente solo puede tener una solicitud en estado Pendiente (0 = Pendiente)
             entity.HasIndex(s => new { s.ClienteId, s.Estado })
                 .HasFilter("Estado = 0")
+                .IsUnique();
+        });
+
+        // Notificacion con unicidad de MessageId para deduplicación e idempotencia
+        builder.Entity<Notificacion>(entity =>
+        {
+            entity.HasIndex(n => n.MessageId)
                 .IsUnique();
         });
     }
