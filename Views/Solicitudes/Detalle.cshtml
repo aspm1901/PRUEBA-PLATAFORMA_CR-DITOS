@@ -1,0 +1,99 @@
+@model PlataformaCreditos.Models.SolicitudCredito
+
+@{
+    ViewData["Title"] = $"Detalle de Solicitud #{Model.Id}";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+                    <h4 class="mb-0"><i class="bi bi-file-earmark-text"></i> Detalle de Solicitud #@Model.Id</h4>
+                    <div>
+                        @switch (Model.Estado)
+                        {
+                            case PlataformaCreditos.Models.EstadoSolicitud.Pendiente:
+                                <span class="badge bg-warning text-dark fs-6">Pendiente de Evaluación</span>
+                                break;
+                            case PlataformaCreditos.Models.EstadoSolicitud.Aprobado:
+                                <span class="badge bg-success fs-6">Aprobado</span>
+                                break;
+                            case PlataformaCreditos.Models.EstadoSolicitud.Rechazado:
+                                <span class="badge bg-danger fs-6">Rechazado</span>
+                                break;
+                        }
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted fw-semibold">Monto Solicitado:</div>
+                        <div class="col-sm-8 fs-5 fw-bold text-primary">@Model.MontoSolicitado.ToString("C")</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted fw-semibold">Fecha y Hora de Solicitud:</div>
+                        <div class="col-sm-8">@Model.FechaSolicitud.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss") (UTC: @Model.FechaSolicitud.ToString("yyyy-MM-dd HH:mm"))</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted fw-semibold">Estado Actual:</div>
+                        <div class="col-sm-8">
+                            <strong>@Model.Estado.ToString()</strong>
+                        </div>
+                    </div>
+
+                    @if (Model.Estado == PlataformaCreditos.Models.EstadoSolicitud.Rechazado)
+                    {
+                        <div class="alert alert-danger mt-3" role="alert">
+                            <h6 class="alert-heading fw-bold"><i class="bi bi-x-circle-fill"></i> Motivo del Rechazo:</h6>
+                            <p class="mb-0">@(string.IsNullOrWhiteSpace(Model.MotivoRechazo) ? "Sin motivo especificado." : Model.MotivoRechazo)</p>
+                        </div>
+                    }
+
+                    <hr class="my-4" />
+
+                    <h5 class="fw-bold text-secondary mb-3"><i class="bi bi-person-badge"></i> Datos del Cliente Solicitante</h5>
+                    
+                    @if (Model.Cliente != null)
+                    {
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">Usuario / Correo:</div>
+                            <div class="col-sm-8">@(Model.Cliente.Usuario?.Email ?? "No especificado")</div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">Ingresos Mensuales:</div>
+                            <div class="col-sm-8 fw-semibold">@Model.Cliente.IngresosMensuales.ToString("C")</div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">Límite Aprobación (5x):</div>
+                            <div class="col-sm-8 text-secondary">@((Model.Cliente.IngresosMensuales * 5).ToString("C"))</div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">Estado del Cliente:</div>
+                            <div class="col-sm-8">
+                                <span class="badge @(Model.Cliente.Activo ? "bg-success" : "bg-danger")">
+                                    @(Model.Cliente.Activo ? "Activo" : "Inactivo")
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="card-footer bg-light d-flex justify-content-between py-3">
+                    <a asp-action="MisSolicitudes" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver a Mis Solicitudes
+                    </a>
+                    @if (User.IsInRole("Analista"))
+                    {
+                        <a asp-controller="Analista" asp-action="Index" class="btn btn-outline-primary">
+                            Ir al Panel de Analista
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
