@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PlataformaCreditos.Data;
 using PlataformaCreditos.Models;
+using PlataformaCreditos.Models.Messages;
 using PlataformaCreditos.Models.ViewModels;
 using PlataformaCreditos.Services;
 
@@ -16,15 +17,18 @@ public class SolicitudesController : Controller
     private readonly ApplicationDbContext _context;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly ISolicitudesCacheService _cacheService;
+    private readonly IRabbitMqProducer _rabbitMqProducer;
 
     public SolicitudesController(
         ApplicationDbContext context,
         UserManager<IdentityUser> userManager,
-        ISolicitudesCacheService cacheService)
+        ISolicitudesCacheService cacheService,
+        IRabbitMqProducer rabbitMqProducer)
     {
         _context = context;
         _userManager = userManager;
         _cacheService = cacheService;
+        _rabbitMqProducer = rabbitMqProducer;
     }
 
     // GET: Solicitudes/MisSolicitudes
@@ -309,14 +313,55 @@ public class SolicitudesController : Controller
         // Al registrarse una nueva solicitud, se invalida la caché del listado del usuario
         await _cacheService.InvalidateSolicitudesUsuarioAsync(user.Id);
 
-        // Feedback claro en la misma vista (éxito)
-        model.MensajeExito = $"¡Solicitud #{nuevaSolicitud.Id} registrada exitosamente por un monto de {nuevaSolicitud.MontoSolicitado:C}! Su estado actual es: Pendiente de Evaluación.";
+        // --- PUBLICACIÓN ASÍNCRONA EN CLOUD MQ (RABBITMQ) ---
+        // Requerimiento: Publicar un mensaje JSON persistente de tipo SolicitudRegistrada con MessageId (UUID), SolicitudId, UsuarioId y FechaEventoUtc
+        // No publicar si falla la validación o la persistencia (garantizado: ya se ejecutó SaveChangesAsync arriba)
+        var mensajeRabbitMq = new SolicitudRegistradaMessage
+        {
+            MessageId = Guid.NewGuid(),
+            SolicitudId = nuevaSolicitud.Id,
+            UsuarioId = user.Id,
+            FechaEventoUtc = DateTime.UtcNow
+        };
+
+        // Usar confirmación del publicador para verificar aceptación por el broker
+        bool publicadoExitoso = await _rabbitMqProducer.PublicarSolicitudRegistradaAsync(mensajeRabbitMq);
+
+        // Feedback claro en la misma vista
+        if (publicadoExitoso)
+        {
+            model.MensajeExito = $"¡Solicitud #{nuevaSolicitud.Id} registrada exitosamente por {nuevaSolicitud.MontoSolicitado:C}! Se emitió notificación asíncrona a CloudAMQP (MessageId: {mensajeRabbitMq.MessageId}).";
+        }
+        else
+        {
+            // Requerimiento: Ante una falla de publicación, conservar la solicitud, registrar el error y advertir que la notificación no pudo encolarse
+            model.MensajeExito = $"¡Solicitud #{nuevaSolicitud.Id} guardada en base de datos! (Advertencia: No se pudo encolar la notificación en CloudAMQP; la solicitud se conserva íntegra y se puede reintentar con MessageId: {mensajeRabbitMq.MessageId}).";
+        }
+
         model.MensajeError = null;
         model.SolicitudIdCreada = nuevaSolicitud.Id;
         model.TieneSolicitudPendiente = true;
         model.MontoSolicitado = 0;
 
         return View(model);
+    }
+
+    // GET: /Solicitudes/MisNotificaciones
+    [HttpGet]
+    public async Task<IActionResult> MisNotificaciones()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return Challenge();
+        }
+
+        var notificaciones = await _context.Notificaciones
+            .Where(n => n.UsuarioId == user.Id)
+            .OrderByDescending(n => n.FechaProcesamientoUtc)
+            .ToListAsync();
+
+        return View(notificaciones);
     }
 
     // GET: /Solicitudes/ObtenerEstadosVigentes (Para reconexión WebSocket)

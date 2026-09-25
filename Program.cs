@@ -57,6 +57,10 @@ builder.Services.AddSession(options =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ISolicitudesCacheService, SolicitudesCacheService>();
 
+// Servicios de Mensajería Asíncrona Cloud MQ (RabbitMQ)
+builder.Services.AddSingleton<IRabbitMqProducer, RabbitMqProducer>();
+builder.Services.AddHostedService<RabbitMqConsumerService>();
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();

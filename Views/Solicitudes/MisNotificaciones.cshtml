@@ -1,0 +1,68 @@
+@model IEnumerable<PlataformaCreditos.Models.Notificacion>
+
+@{
+    ViewData["Title"] = "Mis Notificaciones";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-primary fw-bold mb-1">
+                <i class="bi bi-bell-fill"></i> Mis Notificaciones
+            </h2>
+            <p class="text-muted mb-0">Mensajes procesados asíncronamente desde Cloud MQ (RabbitMQ).</p>
+        </div>
+        <a asp-action="MisSolicitudes" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Volver a Mis Solicitudes
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-secondary">
+                <i class="bi bi-inbox-fill text-primary"></i> Bandeja de Entrada (@Model.Count())
+            </h5>
+            <span class="badge bg-light text-dark border">
+                Consumidor CloudAMQP: solicitudes.notificaciones
+            </span>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var notif in Model)
+                    {
+                        <div class="list-group-item p-3">
+                            <div class="d-flex w-100 justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0 fw-bold text-dark">
+                                    <i class="bi bi-envelope-check text-success me-2"></i>
+                                    Notificación de Solicitud #@notif.SolicitudId
+                                </h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-clock"></i> @notif.FechaProcesamientoUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")
+                                </small>
+                            </div>
+                            <p class="mb-2 text-secondary">@notif.Texto</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted font-monospace">
+                                    UUID: @notif.MessageId
+                                </small>
+                                <a asp-action="Detalle" asp-route-id="@notif.SolicitudId" class="btn btn-sm btn-outline-primary">
+                                    Ver Solicitud #@notif.SolicitudId
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="p-5 text-center text-muted">
+                    <i class="bi bi-bell-slash fs-1 d-block mb-3 text-secondary"></i>
+                    <h5 class="mb-1">No tienes notificaciones registradas</h5>
+                    <p class="mb-0">Cuando registres una nueva solicitud de crédito, la confirmación asíncrona aparecerá aquí.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
