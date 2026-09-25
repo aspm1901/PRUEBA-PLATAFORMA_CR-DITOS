@@ -1,8 +1,318 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!-- Hero Section -->
+<div class="p-5 mb-4 bg-light rounded-4 border shadow-sm" style="background: linear-gradient(135deg, #0d6efd 0%, #084298 100%) !important; color: white;">
+    <div class="container-fluid py-3">
+        <div class="d-flex align-items-center mb-3">
+            <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3 shadow" style="width: 60px; height: 60px;">
+                <i class="bi bi-bank2 fs-2"></i>
+            </div>
+            <div>
+                <h1 class="display-6 fw-bold mb-0">Plataforma de Créditos</h1>
+                <p class="lead mb-0 text-white-50">Sistema institucional de originación, evaluación y seguimiento en tiempo real</p>
+            </div>
+        </div>
+        <p class="col-md-10 fs-6 text-light opacity-75">
+            Solución financiera empresarial construida sobre <strong>ASP.NET Core (.NET 10)</strong>, con persistencia en 
+            <strong>SQLite &amp; EF Core</strong>, sesiones y caché distribuida en <strong>Redis</strong>, eventos en vivo mediante 
+            <strong>WebSockets (SignalR)</strong> y mensajería asíncrona garantizada con <strong>CloudAMQP (RabbitMQ)</strong>.
+        </p>
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <div class="mt-4 pt-3 border-top border-white border-opacity-25 d-flex flex-wrap align-items-center gap-2">
+                <span class="badge bg-white text-primary px-3 py-2 fs-6">
+                    <i class="bi bi-person-check-fill me-1"></i> Sesión activa: <strong>@User.Identity.Name</strong>
+                </span>
+                @if (User.IsInRole("Analista"))
+                {
+                    <span class="badge bg-warning text-dark px-3 py-2 fs-6">
+                        <i class="bi bi-shield-check me-1"></i> Rol: Analista de Riesgo
+                    </span>
+                    <a asp-controller="Analista" asp-action="Index" class="btn btn-warning fw-semibold px-4 ms-auto">
+                        <i class="bi bi-speedometer2 me-1"></i> Ir al Panel de Analista
+                    </a>
+                }
+                else
+                {
+                    <span class="badge bg-info text-dark px-3 py-2 fs-6">
+                        <i class="bi bi-person-fill me-1"></i> Rol: Cliente
+                    </span>
+                    <a asp-controller="Solicitudes" asp-action="MisSolicitudes" class="btn btn-light text-primary fw-semibold px-4 ms-auto">
+                        <i class="bi bi-card-checklist me-1"></i> Ver Mis Solicitudes
+                    </a>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="mt-4 pt-3 border-top border-white border-opacity-25 d-flex gap-2">
+                <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-light text-primary fw-bold px-4 py-2">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
+                </a>
+            </div>
+        }
+    </div>
 </div>
+
+<!-- Módulos de Acceso Rápido -->
+@if (User.Identity?.IsAuthenticated == true)
+{
+    @if (User.IsInRole("Analista"))
+    {
+        <h4 class="fw-bold mb-3 text-secondary"><i class="bi bi-sliders me-2"></i>Herramientas de Analista</h4>
+        <div class="row g-4 mb-5">
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm rounded-3 hover-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle me-3">
+                                <i class="bi bi-shield-check fs-3"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title fw-bold mb-0">Panel de Evaluación</h5>
+                                <small class="text-muted">Aprobación y diagnóstico de solicitudes</small>
+                            </div>
+                        </div>
+                        <p class="card-text text-secondary">
+                            Evalúa solicitudes de crédito con el motor de diagnóstico automático <strong>Regla 5X</strong>, 
+                            aprueba préstamos o rechaza registrando el motivo obligatorio en la bitácora institucional.
+                        </p>
+                        <a asp-controller="Analista" asp-action="Index" class="btn btn-outline-primary fw-semibold">
+                            Acceder al Panel <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm rounded-3 hover-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle me-3">
+                                <i class="bi bi-bell fs-3"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title fw-bold mb-0">Buzón de Notificaciones</h5>
+                                <small class="text-muted">Eventos procesados por CloudAMQP</small>
+                            </div>
+                        </div>
+                        <p class="card-text text-secondary">
+                            Supervisa el registro histórico de notificaciones asíncronas encoladas y confirmadas con Publisher Confirms 
+                            y procesadas por el <code>BackgroundService</code>.
+                        </p>
+                        <a asp-controller="Solicitudes" asp-action="MisNotificaciones" class="btn btn-outline-info fw-semibold">
+                            Ver Notificaciones <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <h4 class="fw-bold mb-3 text-secondary"><i class="bi bi-grid-fill me-2"></i>Mis Operaciones</h4>
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm rounded-3 hover-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle me-3">
+                                <i class="bi bi-card-checklist fs-3"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title fw-bold mb-0">Mis Solicitudes</h5>
+                                <small class="text-muted">Tiempo real con SignalR</small>
+                            </div>
+                        </div>
+                        <p class="card-text text-secondary">
+                            Revisa el estado de tus préstamos con filtros por monto y fecha. Observa las actualizaciones 
+                            en vivo sin recargar la página.
+                        </p>
+                        <a asp-controller="Solicitudes" asp-action="MisSolicitudes" class="btn btn-outline-primary fw-semibold">
+                            Ir a Mis Solicitudes <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm rounded-3 hover-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle me-3">
+                                <i class="bi bi-plus-circle fs-3"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title fw-bold mb-0">Nueva Solicitud</h5>
+                                <small class="text-muted">Originación de crédito</small>
+                            </div>
+                        </div>
+                        <p class="card-text text-secondary">
+                            Solicita un nuevo crédito evaluando tu capacidad financiera (hasta 10 veces tus ingresos mensuales declarados).
+                        </p>
+                        <a asp-controller="Solicitudes" asp-action="Crear" class="btn btn-outline-success fw-semibold">
+                            Solicitar Crédito <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm rounded-3 hover-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle me-3">
+                                <i class="bi bi-bell fs-3"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title fw-bold mb-0">Mis Notificaciones</h5>
+                                <small class="text-muted">Historial CloudAMQP</small>
+                            </div>
+                        </div>
+                        <p class="card-text text-secondary">
+                            Consulta la bitácora de mensajes y alertas asíncronas confirmadas mediante RabbitMQ en segundo plano.
+                        </p>
+                        <a asp-controller="Solicitudes" asp-action="MisNotificaciones" class="btn btn-outline-info fw-semibold">
+                            Ver Notificaciones <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <!-- Tarjeta informativa con Credenciales de Prueba -->
+    <div class="card border-0 shadow-sm rounded-3 mb-5">
+        <div class="card-header bg-white py-3 border-0">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-key-fill text-warning me-2"></i>Cuentas y Credenciales de Evaluación
+            </h5>
+            <small class="text-muted">Las siguientes cuentas ya están sembradas en la base de datos para pruebas inmediatas:</small>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Perfil</th>
+                            <th>Correo Electrónico</th>
+                            <th>Contraseña</th>
+                            <th>Capacidad Financiera</th>
+                            <th class="text-end pe-4">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="ps-4">
+                                <span class="badge bg-warning text-dark"><i class="bi bi-shield-check"></i> Analista</span>
+                            </td>
+                            <td><code>analista@creditos.com</code></td>
+                            <td><code>Password123!</code></td>
+                            <td>Evaluador institucional (Regla 5X)</td>
+                            <td class="text-end pe-4">
+                                <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-sm btn-outline-primary">
+                                    Iniciar Sesión
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4">
+                                <span class="badge bg-primary"><i class="bi bi-person"></i> Cliente 1</span>
+                            </td>
+                            <td><code>cliente1@creditos.com</code></td>
+                            <td><code>Password123!</code></td>
+                            <td>Ingresos: <strong>$3,500.00</strong> (Máx: $35,000)</td>
+                            <td class="text-end pe-4">
+                                <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-sm btn-outline-primary">
+                                    Iniciar Sesión
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4">
+                                <span class="badge bg-secondary"><i class="bi bi-person"></i> Cliente 2</span>
+                            </td>
+                            <td><code>cliente2@creditos.com</code></td>
+                            <td><code>Password123!</code></td>
+                            <td>Ingresos: <strong>$1,800.00</strong> (Máx: $18,000)</td>
+                            <td class="text-end pe-4">
+                                <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-sm btn-outline-primary">
+                                    Iniciar Sesión
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Pilares de Arquitectura Técnica -->
+<h4 class="fw-bold mb-3 text-secondary"><i class="bi bi-cpu-fill me-2"></i>Pilares Técnicos Evaluados</h4>
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-0 shadow-sm rounded-3">
+            <div class="card-body p-4 text-center">
+                <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-lightning-charge-fill fs-3"></i>
+                </div>
+                <h6 class="fw-bold mb-2">Redis Sesión &amp; Caché</h6>
+                <p class="text-muted small mb-0">
+                    Sesión distribuida que retiene la última solicitud vista en el Layout y caché de 60 segundos con invalidación automática.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-0 shadow-sm rounded-3">
+            <div class="card-body p-4 text-center">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-broadcast fs-3"></i>
+                </div>
+                <h6 class="fw-bold mb-2">WebSockets en Vivo</h6>
+                <p class="text-muted small mb-0">
+                    Canal SignalR bidireccional en <code>/hubs/solicitudes</code> con eventos dirigidos por <code>UsuarioId</code> y reconexión automática.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-0 shadow-sm rounded-3">
+            <div class="card-body p-4 text-center">
+                <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-envelope-paper-fill fs-3"></i>
+                </div>
+                <h6 class="fw-bold mb-2">CloudAMQP (RabbitMQ)</h6>
+                <p class="text-muted small mb-0">
+                    Publicación persistente con Publisher Confirms y consumo desacoplado en segundo plano con ACK manual e idempotencia.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-0 shadow-sm rounded-3">
+            <div class="card-body p-4 text-center">
+                <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-shield-lock-fill fs-3"></i>
+                </div>
+                <h6 class="fw-bold mb-2">EF Core &amp; SQLite</h6>
+                <p class="text-muted small mb-0">
+                    Restricciones CHECK en base de datos, índice condicional único (1 solicitud pendiente activa) y validaciones de regla 10X y 5X.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hover-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12) !important;
+    }
+</style>
