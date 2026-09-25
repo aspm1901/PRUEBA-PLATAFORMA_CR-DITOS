@@ -14,31 +14,32 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand fw-bold text-primary" asp-area="" asp-controller="Home" asp-action="Index">
-                    <i class="bi bi-bank2"></i> PlataformaCréditos
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark navbar-custom mb-4 shadow">
+            <div class="container-fluid px-4">
+                <a class="navbar-brand fw-bold d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
+                    <span class="p-1 px-2 rounded bg-emerald text-white me-2 shadow-sm"><i class="bi bi-shield-shaded"></i></span>
+                    <span class="fs-5 tracking-wide">CREDI<span class="text-emerald">PRO</span></span>
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
                         </li>
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             @if (User.IsInRole("Analista"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-primary fw-bold" asp-area="" asp-controller="Analista" asp-action="Index">
+                                    <a class="nav-link text-emerald fw-bold" asp-area="" asp-controller="Analista" asp-action="Index">
                                         <i class="bi bi-shield-check"></i> Panel Analista
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Solicitudes" asp-action="MisNotificaciones">
+                                    <a class="nav-link" asp-area="" asp-controller="Solicitudes" asp-action="MisNotificaciones">
                                         <i class="bi bi-bell"></i> Mis Notificaciones
                                     </a>
                                 </li>
@@ -46,17 +47,17 @@
                             else
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Solicitudes" asp-action="MisSolicitudes">
+                                    <a class="nav-link" asp-area="" asp-controller="Solicitudes" asp-action="MisSolicitudes">
                                         <i class="bi bi-card-checklist"></i> Mis Solicitudes
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Solicitudes" asp-action="Crear">
+                                    <a class="nav-link" asp-area="" asp-controller="Solicitudes" asp-action="Crear">
                                         <i class="bi bi-plus-circle"></i> Nueva Solicitud
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Solicitudes" asp-action="MisNotificaciones">
+                                    <a class="nav-link" asp-area="" asp-controller="Solicitudes" asp-action="MisNotificaciones">
                                         <i class="bi bi-bell"></i> Mis Notificaciones
                                     </a>
                                 </li>
@@ -67,9 +68,9 @@
                             if (ultimaId.HasValue && !string.IsNullOrEmpty(ultimoMonto))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-primary fw-semibold border border-primary-subtle rounded px-2 ms-lg-2" 
-                                       asp-controller="Solicitudes" asp-action="Detalle" asp-route-id="@ultimaId.Value" title="Recuperado desde sesión en Redis">
-                                        <i class="bi bi-clock-history"></i> Ver última solicitud (@ultimoMonto)
+                                    <a class="nav-link text-emerald fw-semibold border border-success border-opacity-50 rounded px-2 ms-lg-2 bg-dark bg-opacity-25" 
+                                       asp-controller="Solicitudes" asp-action="Detalle" asp-route-id="@ultimaId.Value">
+                                        <i class="bi bi-clock-history"></i> Última Solicitud (@ultimoMonto)
                                     </a>
                                 </li>
                             }

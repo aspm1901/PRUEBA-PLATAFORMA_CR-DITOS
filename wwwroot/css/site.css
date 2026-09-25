@@ -1,5 +1,16 @@
+:root {
+  --brand-primary: #059669;
+  --brand-primary-hover: #047857;
+  --brand-dark: #0f172a;
+  --brand-slate: #1e293b;
+  --brand-emerald: #10b981;
+  --brand-gold: #f59e0b;
+}
+
 html {
   font-size: 14px;
+  position: relative;
+  min-height: 100%;
 }
 
 @media (min-width: 768px) {
@@ -8,24 +19,121 @@ html {
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
 body {
+  background-color: #f8fafc;
+  color: #1e293b;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   margin-bottom: 60px;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+/* ==============================================================================
+   Navbar Dark Slate & Emerald Theme
+   ============================================================================== */
+.navbar-custom {
+  background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%) !important;
+  border-bottom: 1px solid #334155 !important;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+.navbar-custom .navbar-brand {
+  color: #ffffff !important;
+  letter-spacing: 0.5px;
+}
+
+.navbar-custom .nav-link {
+  color: #cbd5e1 !important;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.navbar-custom .nav-link:hover,
+.navbar-custom .nav-link:focus {
+  color: #10b981 !important;
+}
+
+.navbar-custom .nav-link.active {
+  color: #10b981 !important;
+}
+
+.text-emerald {
+  color: #10b981 !important;
+}
+
+.bg-emerald {
+  background-color: #059669 !important;
+}
+
+/* ==============================================================================
+   Button & Color Overrides (Emerald Fintech)
+   ============================================================================== */
+.btn-primary {
+  background-color: #059669 !important;
+  border-color: #059669 !important;
+  color: #ffffff !important;
+}
+
+.btn-primary:hover, 
+.btn-primary:focus, 
+.btn-primary:active {
+  background-color: #047857 !important;
+  border-color: #047857 !important;
+  color: #ffffff !important;
+}
+
+.btn-outline-primary {
+  color: #059669 !important;
+  border-color: #059669 !important;
+}
+
+.btn-outline-primary:hover, 
+.btn-outline-primary:focus {
+  background-color: #059669 !important;
+  border-color: #059669 !important;
+  color: #ffffff !important;
+}
+
+.btn:focus, 
+.btn:active:focus, 
+.form-control:focus, 
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.15rem rgba(16, 185, 129, 0.25) !important;
+  border-color: #10b981 !important;
+}
+
+/* Reemplazo de utilitarios primarios */
+.bg-primary {
+  background-color: #059669 !important;
+}
+
+.text-primary {
+  color: #059669 !important;
+}
+
+/* ==============================================================================
+   Cards, Tables & Badges Styling
+   ============================================================================== */
+.card {
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04) !important;
+}
+
+.card-header {
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+}
+
+.table th {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+}
+
+.badge {
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 0.35em 0.65em;
 }
