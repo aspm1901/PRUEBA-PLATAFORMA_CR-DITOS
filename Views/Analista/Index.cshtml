@@ -1,0 +1,158 @@
+@model IEnumerable<PlataformaCreditos.Models.SolicitudCredito>
+
+@{
+    ViewData["Title"] = "Panel de Analista de Riesgo";
+}
+
+<div class="container-fluid mt-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-primary fw-bold mb-1">
+                <i class="bi bi-shield-check"></i> Panel de Evaluación de Riesgo
+            </h2>
+            <p class="text-muted mb-0">Gestión y resolución de solicitudes de crédito en estado Pendiente.</p>
+        </div>
+        <span class="badge bg-dark fs-6 py-2 px-3">
+            <i class="bi bi-person-fill-gear"></i> Rol: Analista
+        </span>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-secondary">
+                <i class="bi bi-hourglass-split text-warning"></i> Solicitudes Pendientes de Evaluación (@Model.Count())
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th># ID</th>
+                                <th>Cliente / Correo</th>
+                                <th>Ingresos Mensuales</th>
+                                <th>Límite 5X Aprobación</th>
+                                <th>Monto Solicitado</th>
+                                <th>Diagnóstico 5X</th>
+                                <th>Fecha Solicitud</th>
+                                <th class="text-end px-4">Acciones de Analista</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                var ingresos = item.Cliente?.IngresosMensuales ?? 0;
+                                var limite5X = ingresos * 5;
+                                var esAprobable = item.CumpleReglaAprobacion5X(ingresos);
+
+                                <tr>
+                                    <td class="fw-bold">#@item.Id</td>
+                                    <td>
+                                        <div>@(item.Cliente?.Usuario?.Email ?? "Desconocido")</div>
+                                        <small class="text-muted">Cliente ID: @item.ClienteId</small>
+                                    </td>
+                                    <td>@ingresos.ToString("C")</td>
+                                    <td class="fw-semibold text-secondary">@limite5X.ToString("C")</td>
+                                    <td class="fw-bold text-primary fs-6">@item.MontoSolicitado.ToString("C")</td>
+                                    <td>
+                                        @if (esAprobable)
+                                        {
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                                <i class="bi bi-check-circle"></i> Apta (≤ 5X)
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle" 
+                                                  title="El monto supera 5 veces los ingresos mensuales. No se puede aprobar.">
+                                                <i class="bi bi-x-circle"></i> Excede 5X
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>@item.FechaSolicitud.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-end px-4">
+                                        <div class="btn-group" role="group">
+                                            <!-- Botón Aprobar (POST) -->
+                                            <form asp-action="Aprobar" method="post" class="d-inline"
+                                                  onsubmit="return confirm('¿Está seguro de APROBAR la solicitud #@item.Id por @item.MontoSolicitado.ToString("C")?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="btn btn-sm btn-success" @(esAprobable ? "" : "disabled") title="@(esAprobable ? "Aprobar solicitud" : "No aprobable: supera 5 veces los ingresos")">
+                                                    <i class="bi bi-check-lg"></i> Aprobar
+                                                </button>
+                                            </form>
+
+                                            <!-- Botón Rechazar (Abre Modal) -->
+                                            <button type="button" class="btn btn-sm btn-danger ms-1" data-bs-toggle="modal" data-bs-target="#modalRechazar-@item.Id">
+                                                <i class="bi bi-x-lg"></i> Rechazar
+                                            </button>
+                                        </div>
+
+                                        <!-- Modal para ingresar Motivo de Rechazo Obligatorio -->
+                                        <div class="modal fade text-start" id="modalRechazar-@item.Id" tabindex="-1" aria-labelledby="modalLabel-@item.Id" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form asp-action="Rechazar" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@item.Id" />
+                                                        <div class="modal-header bg-danger text-white">
+                                                            <h5 class="modal-title" id="modalLabel-@item.Id">
+                                                                <i class="bi bi-exclamation-triangle"></i> Rechazar Solicitud #@item.Id
+                                                            </h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p>
+                                                                Cliente: <strong>@(item.Cliente?.Usuario?.Email)</strong><br />
+                                                                Monto: <strong>@item.MontoSolicitado.ToString("C")</strong>
+                                                            </p>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">Motivo de Rechazo (Obligatorio):</label>
+                                                                <textarea name="motivoRechazo" class="form-control" rows="3" required 
+                                                                          placeholder="Describa claramente la causa del rechazo (ej: Capacidad de endeudamiento superada)..."></textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                            <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="p-5 text-center text-muted">
+                    <i class="bi bi-check2-circle text-success fs-1 d-block mb-3"></i>
+                    <h5 class="mb-1">¡No hay solicitudes pendientes!</h5>
+                    <p class="mb-0">Todas las solicitudes de crédito han sido evaluadas.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

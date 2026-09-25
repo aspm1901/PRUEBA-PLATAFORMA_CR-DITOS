@@ -40,6 +40,14 @@
                                     <i class="bi bi-plus-circle"></i> Nueva Solicitud
                                 </a>
                             </li>
+                            @if (User.IsInRole("Analista"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark fw-bold" asp-area="" asp-controller="Analista" asp-action="Index">
+                                        <i class="bi bi-shield-check text-primary"></i> Panel Analista
+                                    </a>
+                                </li>
+                            }
 
                             var ultimaId = HttpContextAccessor.HttpContext?.Session?.GetInt32("UltimaSolicitudId");
                             var ultimoMonto = HttpContextAccessor.HttpContext?.Session?.GetString("UltimaSolicitudMonto");
