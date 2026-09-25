@@ -1,0 +1,39 @@
+@page
+@model PlataformaCreditos.Areas.Identity.Pages.Account.Manage.IndexModel
+@{
+    ViewData["Title"] = "Perfil de Usuario";
+}
+
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                <div class="p-4 text-center text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #084298 100%);">
+                    <div class="bg-white text-primary rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-2 shadow-sm" style="width: 60px; height: 60px;">
+                        <i class="bi bi-person-fill fs-2"></i>
+                    </div>
+                    <h4 class="fw-bold mb-1">Mi Cuenta</h4>
+                    <p class="small text-white-50 mb-0">Información del Usuario Autenticado</p>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-secondary">
+                            <i class="bi bi-envelope me-1"></i> Correo Electrónico / Usuario
+                        </label>
+                        <input type="text" class="form-control form-control-lg fs-6" value="@Model.Username" disabled />
+                    </div>
+
+                    <div class="alert alert-light border py-3 small text-secondary" role="alert">
+                        <i class="bi bi-shield-check text-success me-1"></i> Usuario autenticado y verificado en la plataforma crediticia.
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-primary fw-semibold">
+                            <i class="bi bi-house-door me-1"></i> Volver a la Página Principal
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
