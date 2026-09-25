@@ -2,43 +2,40 @@
     ViewData["Title"] = "Inicio";
 }
 
-<!-- Hero Section -->
-<div class="p-5 mb-4 bg-light rounded-4 border shadow-sm" style="background: linear-gradient(135deg, #0d6efd 0%, #084298 100%) !important; color: white;">
-    <div class="container-fluid py-3">
-        <div class="d-flex align-items-center mb-3">
-            <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3 shadow" style="width: 60px; height: 60px;">
-                <i class="bi bi-bank2 fs-2"></i>
+<!-- Cabecera Directa -->
+<div class="p-4 mb-4 text-white rounded-4 shadow-sm" style="background: linear-gradient(135deg, #0d6efd 0%, #084298 100%);">
+    <div class="container-fluid py-2">
+        <div class="d-flex align-items-center mb-2">
+            <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 50px; height: 50px;">
+                <i class="bi bi-bank2 fs-3"></i>
             </div>
             <div>
-                <h1 class="display-6 fw-bold mb-0">Plataforma de Créditos</h1>
-                <p class="lead mb-0 text-white-50">Sistema institucional de originación, evaluación y seguimiento en tiempo real</p>
+                <h3 class="fw-bold mb-0">Plataforma de Créditos</h3>
+                <small class="text-white-50">Evaluación y Gestión de Solicitudes</small>
             </div>
         </div>
-        <p class="col-md-10 fs-6 text-light opacity-75">
-            Solución financiera integral para la originación, evaluación y seguimiento de créditos, con políticas transparentes de endeudamiento y resolución ágil en línea.
-        </p>
 
         @if (User.Identity?.IsAuthenticated == true)
         {
-            <div class="mt-4 pt-3 border-top border-white border-opacity-25 d-flex flex-wrap align-items-center gap-2">
+            <div class="mt-3 pt-3 border-top border-white border-opacity-25 d-flex flex-wrap align-items-center gap-2">
                 <span class="badge bg-white text-primary px-3 py-2 fs-6">
-                    <i class="bi bi-person-check-fill me-1"></i> Sesión activa: <strong>@User.Identity.Name</strong>
+                    <i class="bi bi-person-fill me-1"></i> @User.Identity.Name
                 </span>
                 @if (User.IsInRole("Analista"))
                 {
                     <span class="badge bg-warning text-dark px-3 py-2 fs-6">
-                        <i class="bi bi-shield-check me-1"></i> Rol: Analista de Riesgo
+                        <i class="bi bi-shield-check me-1"></i> Analista
                     </span>
-                    <a asp-controller="Analista" asp-action="Index" class="btn btn-warning fw-semibold px-4 ms-auto">
-                        <i class="bi bi-speedometer2 me-1"></i> Ir al Panel de Analista
+                    <a asp-controller="Analista" asp-action="Index" class="btn btn-warning btn-sm fw-semibold px-3 ms-auto">
+                        <i class="bi bi-shield-check me-1"></i> Ir al Panel de Analista
                     </a>
                 }
                 else
                 {
                     <span class="badge bg-info text-dark px-3 py-2 fs-6">
-                        <i class="bi bi-person-fill me-1"></i> Rol: Cliente
+                        <i class="bi bi-person me-1"></i> Cliente
                     </span>
-                    <a asp-controller="Solicitudes" asp-action="MisSolicitudes" class="btn btn-light text-primary fw-semibold px-4 ms-auto">
+                    <a asp-controller="Solicitudes" asp-action="MisSolicitudes" class="btn btn-light btn-sm text-primary fw-semibold px-3 ms-auto">
                         <i class="bi bi-card-checklist me-1"></i> Ver Mis Solicitudes
                     </a>
                 }
@@ -46,8 +43,8 @@
         }
         else
         {
-            <div class="mt-4 pt-3 border-top border-white border-opacity-25 d-flex gap-2">
-                <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-light text-primary fw-bold px-4 py-2">
+            <div class="mt-3 pt-3 border-top border-white border-opacity-25">
+                <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-light text-primary fw-bold px-4">
                     <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
                 </a>
             </div>
@@ -55,15 +52,14 @@
     </div>
 </div>
 
-<!-- Módulos de Acceso Rápido -->
+<!-- Opciones Funcionales -->
 @if (User.Identity?.IsAuthenticated == true)
 {
     @if (User.IsInRole("Analista"))
     {
-        <h4 class="fw-bold mb-3 text-secondary"><i class="bi bi-sliders me-2"></i>Herramientas de Analista</h4>
-        <div class="row g-4 mb-5">
+        <div class="row g-4 mb-4">
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm rounded-3 hover-card">
+                <div class="card h-100 border-0 shadow-sm rounded-3">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-3">
                             <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle me-3">
@@ -71,21 +67,20 @@
                             </div>
                             <div>
                                 <h5 class="card-title fw-bold mb-0">Panel de Evaluación</h5>
-                                <small class="text-muted">Aprobación y diagnóstico de solicitudes</small>
+                                <small class="text-muted">Aprobar o rechazar créditos</small>
                             </div>
                         </div>
                         <p class="card-text text-secondary">
-                            Evalúa solicitudes de crédito con el motor de diagnóstico automático <strong>Regla 5X</strong>, 
-                            aprueba préstamos o rechaza registrando el motivo obligatorio en la bitácora institucional.
+                            Revisa solicitudes pendientes con diagnóstico de regla 5X y resolución inmediata.
                         </p>
                         <a asp-controller="Analista" asp-action="Index" class="btn btn-outline-primary fw-semibold">
-                            Acceder al Panel <i class="bi bi-arrow-right ms-1"></i>
+                            Entrar al Panel <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm rounded-3 hover-card">
+                <div class="card h-100 border-0 shadow-sm rounded-3">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-3">
                             <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle me-3">
@@ -93,11 +88,11 @@
                             </div>
                             <div>
                                 <h5 class="card-title fw-bold mb-0">Buzón de Notificaciones</h5>
-                                <small class="text-muted">Historial de avisos institucionales</small>
+                                <small class="text-muted">Historial de avisos</small>
                             </div>
                         </div>
                         <p class="card-text text-secondary">
-                            Supervisa el registro histórico de confirmaciones y alertas asociadas a los expedientes crediticios.
+                            Consulta la bitácora de mensajes y eventos procesados.
                         </p>
                         <a asp-controller="Solicitudes" asp-action="MisNotificaciones" class="btn btn-outline-info fw-semibold">
                             Ver Notificaciones <i class="bi bi-arrow-right ms-1"></i>
@@ -109,10 +104,9 @@
     }
     else
     {
-        <h4 class="fw-bold mb-3 text-secondary"><i class="bi bi-grid-fill me-2"></i>Mis Operaciones</h4>
-        <div class="row g-4 mb-5">
+        <div class="row g-4 mb-4">
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm rounded-3 hover-card">
+                <div class="card h-100 border-0 shadow-sm rounded-3">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-3">
                             <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle me-3">
@@ -120,11 +114,11 @@
                             </div>
                             <div>
                                 <h5 class="card-title fw-bold mb-0">Mis Solicitudes</h5>
-                                <small class="text-muted">Consulta y seguimiento</small>
+                                <small class="text-muted">Historial de créditos</small>
                             </div>
                         </div>
                         <p class="card-text text-secondary">
-                            Revisa el estado de tus préstamos con filtros por monto y fecha, recibiendo notificaciones instantáneas de evaluación.
+                            Consulta el estado de tus solicitudes con filtros por monto y fechas.
                         </p>
                         <a asp-controller="Solicitudes" asp-action="MisSolicitudes" class="btn btn-outline-primary fw-semibold">
                             Ir a Mis Solicitudes <i class="bi bi-arrow-right ms-1"></i>
@@ -133,7 +127,7 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm rounded-3 hover-card">
+                <div class="card h-100 border-0 shadow-sm rounded-3">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-3">
                             <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle me-3">
@@ -141,11 +135,11 @@
                             </div>
                             <div>
                                 <h5 class="card-title fw-bold mb-0">Nueva Solicitud</h5>
-                                <small class="text-muted">Originación de crédito</small>
+                                <small class="text-muted">Pedir crédito</small>
                             </div>
                         </div>
                         <p class="card-text text-secondary">
-                            Solicita un nuevo crédito evaluando tu capacidad financiera (hasta 10 veces tus ingresos mensuales declarados).
+                            Registra una nueva solicitud respetando el tope de 10 veces tus ingresos mensuales.
                         </p>
                         <a asp-controller="Solicitudes" asp-action="Crear" class="btn btn-outline-success fw-semibold">
                             Solicitar Crédito <i class="bi bi-arrow-right ms-1"></i>
@@ -154,7 +148,7 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm rounded-3 hover-card">
+                <div class="card h-100 border-0 shadow-sm rounded-3">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-3">
                             <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle me-3">
@@ -162,11 +156,11 @@
                             </div>
                             <div>
                                 <h5 class="card-title fw-bold mb-0">Mis Notificaciones</h5>
-                                <small class="text-muted">Centro de mensajes</small>
+                                <small class="text-muted">Avisos</small>
                             </div>
                         </div>
                         <p class="card-text text-secondary">
-                            Consulta la bitácora de mensajes y alertas de resolución de tus solicitudes.
+                            Revisa el buzón de notificaciones de tus solicitudes.
                         </p>
                         <a asp-controller="Solicitudes" asp-action="MisNotificaciones" class="btn btn-outline-info fw-semibold">
                             Ver Notificaciones <i class="bi bi-arrow-right ms-1"></i>
@@ -179,13 +173,12 @@
 }
 else
 {
-    <!-- Tarjeta informativa con Credenciales de Prueba -->
-    <div class="card border-0 shadow-sm rounded-3 mb-5">
+    <!-- Credenciales de Prueba para Calificación -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
         <div class="card-header bg-white py-3 border-0">
             <h5 class="fw-bold mb-0 text-dark">
-                <i class="bi bi-key-fill text-warning me-2"></i>Cuentas y Credenciales de Evaluación
+                <i class="bi bi-key-fill text-warning me-2"></i>Cuentas de Prueba
             </h5>
-            <small class="text-muted">Las siguientes cuentas ya están sembradas en la base de datos para pruebas inmediatas:</small>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -193,9 +186,9 @@ else
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4">Perfil</th>
-                            <th>Correo Electrónico</th>
+                            <th>Correo</th>
                             <th>Contraseña</th>
-                            <th>Capacidad Financiera</th>
+                            <th>Ingresos</th>
                             <th class="text-end pe-4">Acción</th>
                         </tr>
                     </thead>
@@ -206,10 +199,10 @@ else
                             </td>
                             <td><code>analista@creditos.com</code></td>
                             <td><code>Password123!</code></td>
-                            <td>Evaluador institucional (Regla 5X)</td>
+                            <td>Evaluador</td>
                             <td class="text-end pe-4">
                                 <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-sm btn-outline-primary">
-                                    Iniciar Sesión
+                                    Ingresar
                                 </a>
                             </td>
                         </tr>
@@ -219,10 +212,10 @@ else
                             </td>
                             <td><code>cliente1@creditos.com</code></td>
                             <td><code>Password123!</code></td>
-                            <td>Ingresos: <strong>$3,500.00</strong> (Máx: $35,000)</td>
+                            <td>$3,500.00</td>
                             <td class="text-end pe-4">
                                 <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-sm btn-outline-primary">
-                                    Iniciar Sesión
+                                    Ingresar
                                 </a>
                             </td>
                         </tr>
@@ -232,10 +225,10 @@ else
                             </td>
                             <td><code>cliente2@creditos.com</code></td>
                             <td><code>Password123!</code></td>
-                            <td>Ingresos: <strong>$1,800.00</strong> (Máx: $18,000)</td>
+                            <td>$1,800.00</td>
                             <td class="text-end pe-4">
                                 <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-sm btn-outline-primary">
-                                    Iniciar Sesión
+                                    Ingresar
                                 </a>
                             </td>
                         </tr>
@@ -245,70 +238,3 @@ else
         </div>
     </div>
 }
-
-<!-- Pilares de Arquitectura Técnica -->
-<h4 class="fw-bold mb-3 text-secondary"><i class="bi bi-shield-check me-2"></i>Compromiso y Transparencia</h4>
-<div class="row g-4 mb-4">
-    <div class="col-md-6 col-lg-3">
-        <div class="card h-100 border-0 shadow-sm rounded-3">
-            <div class="card-body p-4 text-center">
-                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width: 60px; height: 60px;">
-                    <i class="bi bi-lightning-charge-fill fs-3"></i>
-                </div>
-                <h6 class="fw-bold mb-2">Respuesta Inmediata</h6>
-                <p class="text-muted small mb-0">
-                    Procesamiento de consultas y acceso instantáneo al estado de tus expedientes financieros.
-                </p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="card h-100 border-0 shadow-sm rounded-3">
-            <div class="card-body p-4 text-center">
-                <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width: 60px; height: 60px;">
-                    <i class="bi bi-bell-fill fs-3"></i>
-                </div>
-                <h6 class="fw-bold mb-2">Avisos en Vivo</h6>
-                <p class="text-muted small mb-0">
-                    Recibe notificaciones automáticas al momento en que tu solicitud es resuelta por el comité evaluador.
-                </p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="card h-100 border-0 shadow-sm rounded-3">
-            <div class="card-body p-4 text-center">
-                <div class="bg-info bg-opacity-10 text-info rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width: 60px; height: 60px;">
-                    <i class="bi bi-envelope-check-fill fs-3"></i>
-                </div>
-                <h6 class="fw-bold mb-2">Auditoría Garantizada</h6>
-                <p class="text-muted small mb-0">
-                    Historial de todas las operaciones y comunicaciones para tu respaldo y control financiero.
-                </p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="card h-100 border-0 shadow-sm rounded-3">
-            <div class="card-body p-4 text-center">
-                <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width: 60px; height: 60px;">
-                    <i class="bi bi-shield-lock-fill fs-3"></i>
-                </div>
-                <h6 class="fw-bold mb-2">Políticas Transparentes</h6>
-                <p class="text-muted small mb-0">
-                    Evaluación prudente y objetiva basada estrictamente en tu capacidad declarada de ingresos.
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-    .hover-card {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .hover-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12) !important;
-    }
-</style>
