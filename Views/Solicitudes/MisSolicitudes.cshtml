@@ -9,17 +9,20 @@
         <h2>
             <i class="bi bi-wallet2 text-primary"></i> Mis Solicitudes de Crédito
         </h2>
-        @if (Model.Cliente != null)
-        {
-            <div class="text-end">
-                <span class="badge bg-info text-dark me-2">
-                    Ingresos Mensuales: @Model.Cliente.IngresosMensuales.ToString("C")
+        <div class="d-flex align-items-center gap-2">
+            @if (Model.Cliente != null)
+            {
+                <span class="badge bg-info text-dark">
+                    Ingresos: @Model.Cliente.IngresosMensuales.ToString("C")
                 </span>
                 <span class="badge @(Model.Cliente.Activo ? "bg-success" : "bg-danger")">
-                    @(Model.Cliente.Activo ? "Cliente Activo" : "Cliente Inactivo")
+                    @(Model.Cliente.Activo ? "Activo" : "Inactivo")
                 </span>
-            </div>
-        }
+            }
+            <a asp-action="Crear" class="btn btn-success btn-sm">
+                <i class="bi bi-plus-circle"></i> Nueva Solicitud
+            </a>
+        </div>
     </div>
 
     @if (ViewBag.InfoMessage != null)
