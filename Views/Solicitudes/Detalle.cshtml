@@ -7,12 +7,6 @@
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <!-- Indicador de canal WebSocket -->
-            <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-                <span class="text-muted small"><i class="bi bi-broadcast"></i> Canal en vivo</span>
-                <span id="ws-status-badge" class="badge bg-secondary">Conectando...</span>
-            </div>
-
             <!-- Contenedor dinámico de alertas de actualización en tiempo real -->
             <div id="ws-detalle-notification"></div>
 
@@ -120,13 +114,17 @@
                 .build();
 
             connection.onreconnecting(() => {
-                statusBadge.className = "badge bg-warning text-dark";
-                statusBadge.textContent = "Reconectando...";
+                if (statusBadge) {
+                    statusBadge.className = "badge bg-warning text-dark";
+                    statusBadge.textContent = "Reconectando...";
+                }
             });
 
             connection.onreconnected(() => {
-                statusBadge.className = "badge bg-success";
-                statusBadge.textContent = "Conectado";
+                if (statusBadge) {
+                    statusBadge.className = "badge bg-success";
+                    statusBadge.textContent = "Conectado";
+                }
                 // Recuperar estado vigente del servidor tras reconexión
                 fetch("/Solicitudes/ObtenerEstadosVigentes")
                     .then(r => r.json())
@@ -139,19 +137,25 @@
             });
 
             connection.onclose(() => {
-                statusBadge.className = "badge bg-danger";
-                statusBadge.textContent = "Desconectado";
+                if (statusBadge) {
+                    statusBadge.className = "badge bg-danger";
+                    statusBadge.textContent = "Desconectado";
+                }
             });
 
             connection.start()
                 .then(() => {
-                    statusBadge.className = "badge bg-success";
-                    statusBadge.textContent = "Conectado (WebSocket)";
+                    if (statusBadge) {
+                        statusBadge.className = "badge bg-success";
+                        statusBadge.textContent = "Conectado";
+                    }
                 })
                 .catch(err => {
                     console.error("Error WebSocket:", err);
-                    statusBadge.className = "badge bg-danger";
-                    statusBadge.textContent = "Error de Conexión";
+                    if (statusBadge) {
+                        statusBadge.className = "badge bg-danger";
+                        statusBadge.textContent = "Error de Conexión";
+                    }
                 });
 
             // Requerimiento: Recibir evento y actualizar sin recargar página
@@ -162,8 +166,8 @@
                     const alertType = data.estado === "Aprobado" ? "success" : "danger";
                     notificationContainer.innerHTML = `
                         <div class="alert alert-${alertType} alert-dismissible fade show shadow mb-3" role="alert">
-                            <h5 class="alert-heading mb-1"><i class="bi bi-bell-fill"></i> ¡Solicitud Evaluada en Tiempo Real!</h5>
-                            <p class="mb-0">El analista ha actualizado esta solicitud al estado: <strong>${data.estado}</strong>.</p>
+                            <h5 class="alert-heading mb-1"><i class="bi bi-bell-fill"></i> Actualización de Solicitud</h5>
+                            <p class="mb-0">El estado de la solicitud ha cambiado a: <strong>${data.estado}</strong>.</p>
                             ${data.motivoRechazo ? `<small class="d-block mt-1"><strong>Motivo:</strong> ${data.motivoRechazo}</small>` : ''}
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>`;

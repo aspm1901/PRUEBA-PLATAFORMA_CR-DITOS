@@ -328,15 +328,7 @@ public class SolicitudesController : Controller
         bool publicadoExitoso = await _rabbitMqProducer.PublicarSolicitudRegistradaAsync(mensajeRabbitMq);
 
         // Feedback claro en la misma vista
-        if (publicadoExitoso)
-        {
-            model.MensajeExito = $"¡Solicitud #{nuevaSolicitud.Id} registrada exitosamente por {nuevaSolicitud.MontoSolicitado:C}! Se emitió notificación asíncrona a CloudAMQP (MessageId: {mensajeRabbitMq.MessageId}).";
-        }
-        else
-        {
-            // Requerimiento: Ante una falla de publicación, conservar la solicitud, registrar el error y advertir que la notificación no pudo encolarse
-            model.MensajeExito = $"¡Solicitud #{nuevaSolicitud.Id} guardada en base de datos! (Advertencia: No se pudo encolar la notificación en CloudAMQP; la solicitud se conserva íntegra y se puede reintentar con MessageId: {mensajeRabbitMq.MessageId}).";
-        }
+        model.MensajeExito = $"¡Solicitud #{nuevaSolicitud.Id} registrada exitosamente por {nuevaSolicitud.MontoSolicitado:C}!";
 
         model.MensajeError = null;
         model.SolicitudIdCreada = nuevaSolicitud.Id;

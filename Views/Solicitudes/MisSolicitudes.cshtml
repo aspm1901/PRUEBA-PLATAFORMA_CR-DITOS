@@ -25,18 +25,7 @@
         </div>
     </div>
 
-    <!-- Indicador de Estado de Conexión WebSocket -->
-    <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded border">
-        <div class="d-flex align-items-center">
-            <span class="text-muted small me-2"><i class="bi bi-hdd-network"></i> Canal WebSocket:</span>
-            <span id="ws-status-badge" class="badge bg-secondary">
-                <span class="spinner-grow spinner-grow-sm me-1" role="status" aria-hidden="true"></span> Conectando...
-            </span>
-        </div>
-        <small id="ws-last-sync" class="text-muted"></small>
-    </div>
-
-    <!-- Contenedor dinámico de avisos WebSocket en tiempo real -->
+    <!-- Contenedor dinámico de avisos en tiempo real -->
     <div id="ws-notification-container"></div>
 
     @if (ViewBag.InfoMessage != null)
@@ -111,14 +100,8 @@
 
     <!-- Listado de Solicitudes -->
     <div class="card shadow-sm">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <span class="fw-bold">Listado de Solicitudes (@Model.Solicitudes.Count)</span>
-            @if (ViewBag.OrigenDatos != null)
-            {
-                <span class="badge bg-secondary text-white fw-normal">
-                    <i class="bi bi-hdd-network"></i> @ViewBag.OrigenDatos
-                </span>
-            }
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold text-secondary">Listado de Solicitudes (@Model.Solicitudes.Count)</h5>
         </div>
         <div class="card-body p-0">
             @if (Model.Solicitudes.Any())
@@ -186,19 +169,27 @@
                 .build();
 
             function setConnected() {
-                statusBadge.className = "badge bg-success";
-                statusBadge.innerHTML = '<i class="bi bi-broadcast"></i> Conectado (WebSocket en vivo)';
-                lastSync.textContent = "Sincronizado: " + new Date().toLocaleTimeString();
+                if (statusBadge) {
+                    statusBadge.className = "badge bg-success";
+                    statusBadge.innerHTML = 'Conectado';
+                }
+                if (lastSync) {
+                    lastSync.textContent = new Date().toLocaleTimeString();
+                }
             }
 
             function setReconnecting() {
-                statusBadge.className = "badge bg-warning text-dark";
-                statusBadge.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Reconectando...';
+                if (statusBadge) {
+                    statusBadge.className = "badge bg-warning text-dark";
+                    statusBadge.innerHTML = 'Reconectando...';
+                }
             }
 
             function setDisconnected() {
-                statusBadge.className = "badge bg-danger";
-                statusBadge.innerHTML = '<i class="bi bi-x-circle"></i> Desconectado';
+                if (statusBadge) {
+                    statusBadge.className = "badge bg-danger";
+                    statusBadge.innerHTML = 'Desconectado';
+                }
             }
 
             // Manejadores del ciclo de vida de conexión
@@ -240,7 +231,7 @@
                         <div class="d-flex align-items-center">
                             <i class="bi bi-${icon} fs-4 me-2"></i>
                             <div>
-                                <h6 class="mb-0 fw-bold">¡Actualización en tiempo real recibida!</h6>
+                                <h6 class="mb-0 fw-bold">Actualización de Solicitud</h6>
                                 <div>Tu solicitud de crédito <strong>#${data.solicitudId}</strong> ha sido evaluada: 
                                     <span class="badge bg-${alertType} ms-1">${data.estado}</span>
                                 </div>
