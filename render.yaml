@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: plataforma-creditos
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        value: Data Source=/app/data/app.db
+      - key: Redis__ConnectionString
+        sync: false
+      - key: RabbitMq__ConnectionString
+        sync: false
+      - key: RabbitMq__QueueName
+        value: solicitudes.notificaciones
+      - key: RabbitMq__ConsumerEnabled
+        value: "true"
