@@ -4,11 +4,33 @@ using PlataformaCreditos.Data;
 using PlataformaCreditos.Hubs;
 using PlataformaCreditos.Services;
 
+using Microsoft.AspNetCore.HttpOverrides;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Configuración de reenvío de encabezados para proxies inversos (Render.com)
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Configuración de SQLite
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? "Data Source=app.db";
+
+// Asegurar que el directorio de la base de datos SQLite exista si tiene ruta de carpeta
+var dbMatch = System.Text.RegularExpressions.Regex.Match(connectionString, @"Data Source=([^;]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+if (dbMatch.Success)
+{
+    var dbPath = dbMatch.Groups[1].Value.Trim();
+    var dir = Path.GetDirectoryName(dbPath);
+    if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+    {
+        Directory.CreateDirectory(dir);
+    }
+}
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
@@ -80,6 +102,8 @@ else
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
+app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
 app.UseRouting();
