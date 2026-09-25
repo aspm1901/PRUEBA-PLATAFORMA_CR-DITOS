@@ -318,4 +318,35 @@ public class SolicitudesController : Controller
 
         return View(model);
     }
+
+    // GET: /Solicitudes/ObtenerEstadosVigentes (Para reconexión WebSocket)
+    [HttpGet]
+    public async Task<IActionResult> ObtenerEstadosVigentes()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return Challenge();
+        }
+
+        var cliente = await _context.Clientes
+            .FirstOrDefaultAsync(c => c.UsuarioId == user.Id);
+
+        if (cliente == null)
+        {
+            return Json(new List<object>());
+        }
+
+        var estados = await _context.SolicitudesCredito
+            .Where(s => s.ClienteId == cliente.Id)
+            .Select(s => new
+            {
+                id = s.Id,
+                estado = s.Estado.ToString(),
+                motivoRechazo = s.MotivoRechazo
+            })
+            .ToListAsync();
+
+        return Json(estados);
+    }
 }
